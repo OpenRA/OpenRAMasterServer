@@ -1,14 +1,32 @@
 ﻿<?php
+    define('PORT_CHECK_TIMEOUT', 3);
+    
+    function check_port($ip, $port)
+    {
+        $sock = @fsockopen($ip, $port, $errno, $errstr, PORT_CHECK_TIMEOUT);
+        if (!$sock)
+            return false;
+        fclose($sock);
+        return true;
+    }
+
     header( 'Content-type: text/plain' );
     try 
     {
         $db = new PDO('sqlite:openra.db');
-        $addr = $_SERVER['REMOTE_ADDR'] . ':' . $_REQUEST['port'];
+        $ip = $_SERVER['REMOTE_ADDR'];
+        $port = $_REQUEST['port'];
+        $addr = $ip . ':' . $port;
+        $name = $_REQUEST['name'];
+        
+        $connectable = check_port($ip, $port);
+        if (!$connectable)
+            $name = '[down]' . $name;
         
         $insert = $db->prepare('INSERT OR REPLACE INTO servers 
             (name, address, players, state, ts, map, mods) 
             VALUES (:name, :addr, :players, :state, :time, :map, :mods)');
-        $insert->bindValue(':name', $_REQUEST['name'], PDO::PARAM_STR);
+        $insert->bindValue(':name', $name, PDO::PARAM_STR);
         $insert->bindValue(':addr', $addr, PDO::PARAM_STR);
         $insert->bindValue(':players', $_REQUEST['players'], PDO::PARAM_INT);
         $insert->bindValue(':state', $_REQUEST['state'], PDO::PARAM_INT);
