@@ -17,11 +17,14 @@
         $ip = $_SERVER['REMOTE_ADDR'];
         $port = $_REQUEST['port'];
         $addr = $ip . ':' . $port;
-        $name = $_REQUEST['name'];
+        $name = urldecode( $_REQUEST['name'] );
         
-        $connectable = check_port($ip, $port);
-        if (!$connectable)
-            $name = '[down]' . $name;
+		if (isset( $_REQUEST['new']))
+		{
+            $connectable = check_port($ip, $port);
+            if (!$connectable)
+                $name = '[down]' . $name;
+		}
         
         $insert = $db->prepare('INSERT OR REPLACE INTO servers 
             (name, address, players, state, ts, map, mods) 
