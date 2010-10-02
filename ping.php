@@ -1,4 +1,4 @@
-﻿<?php
+<?php
     define('PORT_CHECK_TIMEOUT', 3);
     
     function check_port($ip, $port)
@@ -9,6 +9,14 @@
         fclose($sock);
         return true;
     }
+
+    // make sure everything required is actually set.
+    if (!isset( $_REQUEST['port'] )) exit();
+    if (!isset( $_REQUEST['name'] )) exit();
+    if (!isset( $_REQUEST['state'] )) exit();
+    if (!isset( $_REQUEST['map'] )) exit();
+    if (!isset( $_REQUEST['mods'] )) exit();
+    if (!isset( $_REQUEST['players'] )) exit();
 
     header( 'Content-type: text/plain' );
     try 
