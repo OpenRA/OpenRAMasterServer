@@ -2,7 +2,7 @@
     header( 'Content-type: text/plain' );
     try
     {
-        $db = new PDO('sqlite:openra.db');
+        $db = new PDO('sqlite:db/openra.db');
         echo 'Connection to DB established.\n';
         if ($db->query('DROP TABLE servers'))
             echo 'Dropped table.\n';

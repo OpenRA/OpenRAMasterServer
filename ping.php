@@ -21,7 +21,7 @@
     header( 'Content-type: text/plain' );
     try 
     {
-        $db = new PDO('sqlite:openra.db');
+        $db = new PDO('sqlite:db/openra.db');
         $ip = $_SERVER['REMOTE_ADDR'];
         $port = $_REQUEST['port'];
         $addr = $ip . ':' . $port;

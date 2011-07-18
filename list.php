@@ -3,7 +3,7 @@
 
     try
     {
-        $db = new PDO('sqlite:openra.db');
+        $db = new PDO('sqlite:db/openra.db');
         $stale = 60 * 5;
         $result = $db->query('SELECT * FROM servers WHERE (' . time() . ' - ts < ' . $stale . ') ORDER BY name');
 	$n = 0;
