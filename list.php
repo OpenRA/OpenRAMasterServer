@@ -1,4 +1,4 @@
-﻿<?php
+<?php
     header( 'Content-type: text/plain' );
 
     try

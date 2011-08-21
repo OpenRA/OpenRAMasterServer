@@ -56,8 +56,8 @@
 
             echo (int)$select->fetchColumn();
     
-            $games = file_get_contents("../games.txt");
-            file_put_contents("../games.txt", $games + 1);
+            $games = file_get_contents("games.txt");
+            file_put_contents("games.txt", $games + 1);
         }
 
         $db = null;
