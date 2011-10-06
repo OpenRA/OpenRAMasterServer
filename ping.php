@@ -29,9 +29,14 @@
 
         $select->execute();
         $count = (int)$select->fetchColumn();
-        if ( $count > 10 )
+        if ( $count > 20 )
         {
-                exit();
+            $stale = 60 * 5;
+            //  If someone really spams master server using GET requests, he is restricted by 20 records per 300 seconds
+            //  At the same time: remove old entries (why to keep them?)
+            $delete = $db->prepare('DELETE FROM servers WHERE (' . time() . ' - ts > ' . $stale . ')');
+            $delete->execute();
+            exit();
         }
         
         $port = $_REQUEST['port'];
