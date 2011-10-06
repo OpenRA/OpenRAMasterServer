@@ -21,29 +21,29 @@
     header( 'Content-type: text/plain' );
     try 
     {
-		$ip = $_SERVER['REMOTE_ADDR'];
-	
-		$db = new PDO('sqlite:db/openra.db');
+        $ip = $_SERVER['REMOTE_ADDR'];
+    
+        $db = new PDO('sqlite:db/openra.db');
 
-		$select = $db->prepare("SELECT COUNT(address) FROM servers WHERE address LIKE '".$ip.":%'");
+        $select = $db->prepare("SELECT COUNT(address) FROM servers WHERE address LIKE '".$ip.":%'");
 
-		$select->execute();
-		$count = (int)$select->fetchColumn();
-		if ( $count > 10 )
-		{
-				exit();
-		}
-		
+        $select->execute();
+        $count = (int)$select->fetchColumn();
+        if ( $count > 10 )
+        {
+                exit();
+        }
+        
         $port = $_REQUEST['port'];
         $addr = $ip . ':' . $port;
         $name = urldecode( $_REQUEST['name'] );
         
-		if (isset( $_REQUEST['new']))
-		{
+        if (isset( $_REQUEST['new']))
+        {
             $connectable = check_port($ip, $port);
             if (!$connectable)
                 $name = '[down]' . $name;
-		}
+        }
         
         $insert = $db->prepare('INSERT OR REPLACE INTO servers 
             (name, address, players, state, ts, map, mods) 
