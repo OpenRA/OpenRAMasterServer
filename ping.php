@@ -21,8 +21,19 @@
     header( 'Content-type: text/plain' );
     try 
     {
-        $db = new PDO('sqlite:db/openra.db');
-        $ip = $_SERVER['REMOTE_ADDR'];
+		$ip = $_SERVER['REMOTE_ADDR'];
+	
+		$db = new PDO('sqlite:db/openra.db');
+
+		$select = $db->prepare("SELECT COUNT(address) FROM servers WHERE address LIKE '".$ip.":%'");
+
+		$select->execute();
+		$count = (int)$select->fetchColumn();
+		if ( $count > 10 )
+		{
+				exit();
+		}
+		
         $port = $_REQUEST['port'];
         $addr = $ip . ':' . $port;
         $name = urldecode( $_REQUEST['name'] );
