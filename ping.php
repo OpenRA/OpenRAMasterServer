@@ -26,12 +26,16 @@
         $port = $_REQUEST['port'];
         $addr = $ip . ':' . $port;
         $name = urldecode( $_REQUEST['name'] );
-        
+        $state = $_REQUEST['state'];
+
 		if (isset( $_REQUEST['new']))
 		{
             $connectable = check_port($ip, $port);
             if (!$connectable)
-                $name = '[down]' . $name;
+            {
+				$name = '[down]' . $name;
+                $state = -1;
+		    }
 		}
         
         $insert = $db->prepare('INSERT OR REPLACE INTO servers 
@@ -40,7 +44,7 @@
         $insert->bindValue(':name', $name, PDO::PARAM_STR);
         $insert->bindValue(':addr', $addr, PDO::PARAM_STR);
         $insert->bindValue(':players', $_REQUEST['players'], PDO::PARAM_INT);
-        $insert->bindValue(':state', $_REQUEST['state'], PDO::PARAM_INT);
+        $insert->bindValue(':state', $state, PDO::PARAM_INT);
         $insert->bindValue(':time', time(), PDO::PARAM_INT);
         $insert->bindValue(':map', $_REQUEST['map'], PDO::PARAM_STR);
         $insert->bindValue(':mods', $_REQUEST['mods'], PDO::PARAM_STR);
