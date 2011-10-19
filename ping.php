@@ -21,34 +21,22 @@
     header( 'Content-type: text/plain' );
     try 
     {
-        $ip = $_SERVER['REMOTE_ADDR'];
-    
         $db = new PDO('sqlite:db/openra.db');
-
-        $select = $db->prepare("SELECT COUNT(address) FROM servers WHERE address LIKE '".$ip.":%'");
-
-        $select->execute();
-        $count = (int)$select->fetchColumn();
-        if ( $count > 20 )
-        {
-            $stale = 60 * 5;
-            //  If someone really spams master server using GET requests, he is restricted by 20 records per 300 seconds
-            //  At the same time: remove old entries (why to keep them?)
-            $delete = $db->prepare('DELETE FROM servers WHERE (' . time() . ' - ts > ' . $stale . ')');
-            $delete->execute();
-            exit();
-        }
-        
+        $ip = $_SERVER['REMOTE_ADDR'];
         $port = $_REQUEST['port'];
         $addr = $ip . ':' . $port;
         $name = urldecode( $_REQUEST['name'] );
-        
-        if (isset( $_REQUEST['new']))
-        {
+        $state = $_REQUEST['state'];
+
+		if (isset( $_REQUEST['new']))
+		{
             $connectable = check_port($ip, $port);
             if (!$connectable)
-                $name = '[down]' . $name;
-        }
+            {
+				$name = '[down]' . $name;
+                $state = -1;
+		    }
+		}
         
         $insert = $db->prepare('INSERT OR REPLACE INTO servers 
             (name, address, players, state, ts, map, mods) 
@@ -56,7 +44,7 @@
         $insert->bindValue(':name', $name, PDO::PARAM_STR);
         $insert->bindValue(':addr', $addr, PDO::PARAM_STR);
         $insert->bindValue(':players', $_REQUEST['players'], PDO::PARAM_INT);
-        $insert->bindValue(':state', $_REQUEST['state'], PDO::PARAM_INT);
+        $insert->bindValue(':state', $state, PDO::PARAM_INT);
         $insert->bindValue(':time', time(), PDO::PARAM_INT);
         $insert->bindValue(':map', $_REQUEST['map'], PDO::PARAM_STR);
         $insert->bindValue(':mods', $_REQUEST['mods'], PDO::PARAM_STR);
