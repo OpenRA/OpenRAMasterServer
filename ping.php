@@ -21,34 +21,18 @@
     header( 'Content-type: text/plain' );
     try 
     {
-        $ip = $_SERVER['REMOTE_ADDR'];
-    
         $db = new PDO('sqlite:db/openra.db');
-
-        $select = $db->prepare("SELECT COUNT(address) FROM servers WHERE address LIKE '".$ip.":%'");
-
-        $select->execute();
-        $count = (int)$select->fetchColumn();
-        if ( $count > 20 )
-        {
-            $stale = 60 * 5;
-            //  If someone really spams master server using GET requests, he is restricted by 20 records per 300 seconds
-            //  At the same time: remove old entries (why to keep them?)
-            $delete = $db->prepare('DELETE FROM servers WHERE (' . time() . ' - ts > ' . $stale . ')');
-            $delete->execute();
-            exit();
-        }
-        
+        $ip = $_SERVER['REMOTE_ADDR'];
         $port = $_REQUEST['port'];
         $addr = $ip . ':' . $port;
         $name = urldecode( $_REQUEST['name'] );
         
-        if (isset( $_REQUEST['new']))
-        {
+		if (isset( $_REQUEST['new']))
+		{
             $connectable = check_port($ip, $port);
             if (!$connectable)
                 $name = '[down]' . $name;
-        }
+		}
         
         $insert = $db->prepare('INSERT OR REPLACE INTO servers 
             (name, address, players, state, ts, map, mods) 
