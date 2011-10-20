@@ -39,77 +39,20 @@
 		}
 		
 		// required support of old clients
-		if ( isset($_REQUEST['maxplayers']))
+		function req_or_default($var, $def)
 		{
-			$maxplayers = $_REQUEST['maxplayers'];
+			if ( isset( $_REQUEST[$var] ) ) { return $_REQUEST[$var]; }
+			else return $def;
 		}
-		else
-		{
-			$maxplayers = 0;
-		}
-		
-		if ( isset($_REQUEST['title']))
-		{
-			$title = $_REQUEST['title'];
-		}
-		else
-		{
-			$title = '';
-		}
-		
-		if ( isset($_REQUEST['description']))
-		{
-			$description = $_REQUEST['description'];
-		}
-		else
-		{
-			$description = '';
-		}
-		
-		if ( isset($_REQUEST['type']))
-		{
-			$type = $_REQUEST['type'];
-		}
-		else
-		{
-			$type = '';
-		}
-		
-		if ( isset($_REQUEST['width']))
-		{
-			$width = $_REQUEST['width'];
-		}
-		else
-		{
-			$width = 0;
-		}
-		
-		if ( isset($_REQUEST['height']))
-		{
-			$height = $_REQUEST['height'];
-		}
-		else
-		{
-			$height = 0;
-		}
-		
-		if ( isset($_REQUEST['tileset']))
-		{
-			$tileset = $_REQUEST['tileset'];
-		}
-		else
-		{
-			$tileset = '';
-		}
-		
-		if ( isset($_REQUEST['author']))
-		{
-			$author = $_REQUEST['author'];
-		}
-		else
-		{
-			$author = '';
-		}
+
+		$maxplayers = req_or_default( 'maxplayers', 0 );
+		$title = req_or_default( 'title', '' );
+		$description = req_or_default( 'description', '' );
+		$type = req_or_default( 'type', '' );
+		$width = req_or_default( 'width', 0 );
+		$height = req_or_default( 'height', 0 );
+		$tileset = req_or_default( 'tileset', '' );
+		$author = req_or_default( 'author', '' );
 		
         $insert = $db->prepare('INSERT OR REPLACE INTO servers 
             (name, address, players, state, ts, map, mods, maxplayers, title, description, type, width, height, tileset, author) 
