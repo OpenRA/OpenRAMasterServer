@@ -27,13 +27,21 @@
         $addr = $ip . ':' . $port;
         $name = urldecode( $_REQUEST['name'] );
         
-		if (isset( $_REQUEST['new']))
-		{
+        if ($_REQUEST['state'] == 3)
+        {
+               $remove = $db->prepare('DELETE FROM servers WHERE address = ?')
+               $remove->execute($addr)
+               $db = null
+               exit;
+        }
+
+        if (isset( $_REQUEST['new']))
+        {
             $connectable = check_port($ip, $port);
             if (!$connectable)
                 $name = '[down]' . $name;
-		}
-        
+        }
+
         $insert = $db->prepare('INSERT OR REPLACE INTO servers 
             (name, address, players, state, ts, map, mods) 
             VALUES (:name, :addr, :players, :state, :time, :map, :mods)');
