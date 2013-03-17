@@ -20,6 +20,15 @@ header('Content-Type: application/javascript');
             $game_result['state'] = $row['state'];
             $game_result['address'] = $row['address'];
             $game_result['id'] = $row['id'];
+	    if (isset( $_REQUEST['location'] ))
+	    {
+		$ip_addr = split(":", $row['address']);
+		array_pop($ip_addr);
+		$ip_addr = implode(":", $ip_addr);
+		$content = file_get_contents('http://api.hostip.info/country.php?ip=' . $ip_addr);
+		if( $content !== FALSE )
+		    $game_result['location'] = $content;
+	    }
             $json_result_array[] = $game_result;
             unset($game_result);
         }
