@@ -1,4 +1,4 @@
 OpenRA Master Server
 ====================
 
-Scripts that make up the [OpenRA project's master server](http://master.open-ra.org) for game broadcasts.
+Scripts that make up the [OpenRA](http://www.open-ra.org) project's master server for game broadcasts.
