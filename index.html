@@ -8,7 +8,7 @@
 			function gamelist_updateInfo() {
 				$.ajax({
 					type: "GET",
-					url:  "list_json.php"
+					url:  "simple-proxy.php?url=http://master.open-ra.org/list_json.php&mode=native"
 				}).done(function(masterMessage) {
 					$('#serverlist').empty();
 					$('#serverlist').append('<tr><td><table id="gamelist"><tr><th>Server Name</th><th>Mod / Version</th><th>Players</th></tr></table></td><td><table id="maplist"><tr><th>Map</th></tr></table></td></tr>');
@@ -41,7 +41,7 @@
 						if (!document.show.empty.checked) { // Don't query too much.
 							$.ajax({
 								type: "GET",
-								url:  "http://content.open-ra.org/api/map_data.php?hash="+game['map']
+								url:  "simple-proxy.php?url=http://content.open-ra.org/api/map_data.php?hash="+game['map']+"&mode=native"
 							}).done(function(contentMessage) {
 								var contentReply = jQuery.parseJSON(contentMessage);
 	
