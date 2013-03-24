@@ -1,7 +1,7 @@
 <?php
 	// === configuration ===
 
-	define('DEBUG',				1);
+	define('DEBUG',				0);
 	define('PORT_CHECK_TIMEOUT',		3);
 
 	ini_set('display_errors', 		DEBUG);
