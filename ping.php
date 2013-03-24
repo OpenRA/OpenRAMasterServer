@@ -12,15 +12,6 @@
 
 	// === functions ===
 
-	function die_msg($msg)
-	{
-		if (DEBUG) {
-			debug_print_backtrace();
-			die($msg);
-		}
-		die();
-	}
-
 	function check_port($ip, $port)
 	{
 		return @fsockopen($ip, $port, $errno, $errstr, PORT_CHECK_TIMEOUT);
@@ -46,7 +37,7 @@
 	// make sure everything required is actually set.
 	foreach(array('port', 'name', 'state', 'map', 'mods', 'players') as $key)
 		if(!isset($_REQUEST[$key]))
-			die_msg('field "'.$key.'" is not set');
+			die('field "'.$key.'" is not set');
 
 	try 
 	{
