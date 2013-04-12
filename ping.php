@@ -50,7 +50,7 @@
 		
 		if ($_REQUEST['state'] == 3)
 		{
-			$remove = $db->prepare('DELETE FROM `server` WHERE address = :addr');
+			$remove = $db->prepare('DELETE FROM `servers` WHERE address = :addr');
 			$remove->bindValue(':addr', $addr, PDO::PARAM_STR);
 			$remove->execute();
 			unset($db);
