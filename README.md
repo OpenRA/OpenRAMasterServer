@@ -1,5 +1,5 @@
-OpenRAMasterServer
-==================
+OpenRA Master Server
+====================
 
 Scripts that make up the [OpenRA](http://open-ra.org) project's master server for game broadcasts.
 
