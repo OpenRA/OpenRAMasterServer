@@ -12,3 +12,4 @@ Stats
 -----
  * Uptime: http://stats.pingdom.com/zaegmvlagqpe/788265
  * Players: http://openra.ipdx.ru/graphs.html
+ * Origins: http://res0l.net/src/LiveORA/map.html
