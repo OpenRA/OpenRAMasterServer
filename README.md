@@ -7,3 +7,8 @@ Supported output formats
 ------------------------
  * MiniYAML: http://master.open-ra.org/list.php
  * JSON: http://master.open-ra.org/list_json.php
+
+Stats
+-----
+ * Uptime: http://stats.pingdom.com/zaegmvlagqpe/788265
+ * Players: http://openra.ipdx.ru/graphs.html
