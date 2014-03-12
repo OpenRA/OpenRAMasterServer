@@ -54,6 +54,9 @@
 			$remove->bindValue(':addr', $addr, PDO::PARAM_STR);
 			$remove->execute();
 			unset($db);
+			$file = 'games.log';
+			$data = $addr.",".$_REQUEST['map'].",".$_REQUEST['mods']."\n";
+			file_put_contents($file, $data, FILE_APPEND | LOCK_EX);
 			exit;
 		}
 
