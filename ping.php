@@ -89,16 +89,16 @@
                             VALUES (:game_id, :name, :address, :map, :game_mod, :version, :protected, :started, :players, :spectators, :bots)"
                     );
                     $insert->bindValue(':game_id', $row['id'], PDO::PARAM_INT);
-                    $insert->bindValue(':name', $_REQUEST['name'], PDO::PARAM_STR);
+                    $insert->bindValue(':name', htmlspecialchars($_REQUEST['name']), PDO::PARAM_STR);
                     $insert->bindValue(':address', $addr, PDO::PARAM_STR);
                     $insert->bindVAlue(':map', $_REQUEST['map'], PDO::PARAM_STR);
-                    $insert->bindValue(':game_mod', $game_mod, PDO::PARAM_STR);
-                    $insert->bindValue(':version', $version, PDO::PARAM_STR);
+                    $insert->bindValue(':game_mod', htmlspecialchars($game_mod), PDO::PARAM_STR);
+                    $insert->bindValue(':version', htmlspecialchars($version), PDO::PARAM_STR);
                     $insert->bindValue(':protected', isset($_REQUEST['protected']) ? $_REQUEST['protected'] : 0, PDO::PARAM_STR);
                     $insert->bindValue(':started', $started, PDO::PARAM_STR);
-                    $insert->bindValue(':players', $_REQUEST['players'], PDO::PARAM_INT);
-                    $insert->bindValue(':spectators', isset($_REQUEST['spectators']) ? $_REQUEST['spectators'] : 0, PDO::PARAM_INT);
-                    $insert->bindValue(':bots', isset($_REQUEST['bots']) ? $_REQUEST['bots'] : 0, PDO::PARAM_INT);
+                    $insert->bindValue(':players', htmlspecialchars($_REQUEST['players']), PDO::PARAM_INT);
+                    $insert->bindValue(':spectators', isset($_REQUEST['spectators']) ? htmlspecialchars($_REQUEST['spectators']) : 0, PDO::PARAM_INT);
+                    $insert->bindValue(':bots', isset($_REQUEST['bots']) ? htmlspecialchars($_REQUEST['bots']) : 0, PDO::PARAM_INT);
                     $insert->execute();
                     if (DEBUG) $insert->debugDumpParams();
                 }
@@ -122,7 +122,7 @@
                             VALUES (:game_id, :name, :address, :map, :game_mod, :version, :protected, :started, :finished)"
                 );
                 $insert->bindValue(':game_id', $row['id'], PDO::PARAM_INT);
-                $insert->bindValue(':name', $_REQUEST['name'], PDO::PARAM_STR);
+                $insert->bindValue(':name', htmlspecialchars($_REQUEST['name']), PDO::PARAM_STR);
                 $insert->bindValue(':address', $addr, PDO::PARAM_STR);
                 $insert->bindVAlue(':map', $_REQUEST['map'], PDO::PARAM_STR);
                 $insert->bindValue(':game_mod', $game_mod, PDO::PARAM_STR);
@@ -186,16 +186,16 @@
 
         updatedbinfo(
             array(
-                'name'      => $name,
+                'name'      => htmlspecialchars($name),
                 'address'   => $addr,
-                'players'   => $_REQUEST['players'],
+                'players'   => htmlspecialchars($_REQUEST['players']),
                 'state'     => $_REQUEST['state'],
                 'ts'        => time(),
                 'map'       => $_REQUEST['map'], 
-                'mods'      => $_REQUEST['mods'],
-                'bots'      => isset($_REQUEST['bots']) ? $_REQUEST['bots'] : 0,
-                'spectators'=> isset($_REQUEST['spectators']) ? $_REQUEST['spectators'] : 0,
-                'maxplayers'=> isset($_REQUEST['maxplayers']) ? $_REQUEST['maxplayers'] : 0,
+                'mods'      => htmlspecialchars($_REQUEST['mods']),
+                'bots'      => isset($_REQUEST['bots']) ? htmlspecialchars($_REQUEST['bots']) : 0,
+                'spectators'=> isset($_REQUEST['spectators']) ? htmlspecialchars($_REQUEST['spectators']) : 0,
+                'maxplayers'=> isset($_REQUEST['maxplayers']) ? htmlspecialchars($_REQUEST['maxplayers']) : 0,
                 'protected' => isset($_REQUEST['protected']) ? $_REQUEST['protected'] : 0,
                 'started'   => $started,
             )
