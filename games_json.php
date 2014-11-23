@@ -22,6 +22,30 @@
             $game_result['state'] = $row['state'];
             $game_result['address'] = $row['address'];
             $game_result['id'] = $row['id'];
+            $game_result['maxplayers'] = $row['maxplayers'];
+            $game_result['bots'] = $row['bots'];
+            $game_result['spectators'] = $row['spectators'];
+            $game_result['protected'] = $row['protected'] != 0 ? 'true' : 'false';
+            if ($row['state'] == 2 && $row['started'] != '')
+                $game_result['started'] = $row['started'];
+            $country = explode(":", $row['address']);
+            array_pop($country);
+            $country = implode(":", $country);
+            $country = geoip_country_name_by_name($country);
+            if ($country)
+                $game_result['location'] = $country;
+
+            $query = $db->prepare('SELECT client FROM clients WHERE address = :addr');
+            $query->bindValue(':addr', $row['address'], PDO::PARAM_STR);
+            $query->execute();
+            $res = $query->fetchAll();
+            if ($res)
+            {
+                $clients = array();
+                foreach ($res as $client)
+                    array_push($clients, $client['client']);
+                $game_result['clients'] = $clients;
+            }
             $json_result_array[] = $game_result;
             unset($game_result);
         }

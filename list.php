@@ -1,4 +1,6 @@
 <?php
+    date_default_timezone_set('UTC');
+
     header( 'Content-type: text/plain' );
 
     try
