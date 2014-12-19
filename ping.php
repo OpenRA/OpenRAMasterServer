@@ -38,7 +38,7 @@
         $query = $db->prepare('DELETE FROM clients WHERE address = :addr');
         $query->bindValue(':addr', $gameinfo['address'], PDO::PARAM_STR);
         $query->execute();
-        
+
         $clients = explode(",", $_REQUEST['clients']);
         foreach ($clients as $client)
         {
@@ -59,27 +59,32 @@
         if(!isset($_REQUEST[$key]))
             die('field "'.$key.'" is not set');
 
-    try 
+    try
     {
-        $db = new PDO('sqlite:db/openra.db');
-
         $ip   = $_SERVER['REMOTE_ADDR'];
         $port = $_REQUEST['port'];
         $addr = $ip.':'.$port;
+
+        // don't get spammed so easily
+        if (!check_port($ip, $port))
+            die('server "'.$addr.'" does not respond');
+
         $name = urldecode($_REQUEST['name']);
         $started = '';
 
         $version_arr = explode('@', $_REQUEST['mods']);
         $game_mod = array_shift($version_arr);
         $version = implode('@', $version_arr);
-        
+
+        $db = new PDO('sqlite:db/openra.db');
+
         if ($_REQUEST['state'] == 2)
         {
             $query = $db->prepare('SELECT * FROM servers WHERE address = :addr');
             $query->bindValue(':addr', $addr, PDO::PARAM_STR);
             $query->execute();
             $result = $query->fetchAll();
-            foreach ( $result as $row )
+            foreach ($result as $row)
             {
                 if ($row['state'] == 1)
                 {
@@ -114,7 +119,7 @@
             $query->bindValue(':addr', $addr, PDO::PARAM_STR);
             $query->execute();
             $result = $query->fetchAll();
-            foreach ( $result as $row )
+            foreach ($result as $row)
             {
                 if ($row['started'] == '')
                     break;
@@ -177,9 +182,6 @@
 
         if (isset($_REQUEST['new']))
         {
-            if(!check_port($ip, $port))
-                $name = '[down]' . $name;
-
             $games = file_get_contents("games.txt");
             file_put_contents("games.txt", $games + 1);
         }
