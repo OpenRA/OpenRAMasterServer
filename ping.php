@@ -66,8 +66,9 @@
         $addr = $ip.':'.$port;
 
         // don't get spammed so easily
-        if (!check_port($ip, $port))
-            die('server "'.$addr.'" does not respond');
+        if ($_REQUEST['state'] == 1)
+            if (!check_port($ip, $port))
+                die('[001] game server "'.$addr.'" does not respond');
 
         $name = urldecode($_REQUEST['name']);
         $started = '';
