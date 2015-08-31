@@ -1,4 +1,4 @@
-﻿<?php
+<?php
     date_default_timezone_set('UTC');
 
     if (php_sapi_name() != 'cli')
@@ -21,7 +21,7 @@
 
         $schema = 'CREATE TABLE servers (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name VARCHAR, 
+                    name VARCHAR,
                     address VARCHAR UNIQUE,
                     players INTEGER,
                     state INTEGER,

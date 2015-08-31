@@ -33,7 +33,7 @@
             if ($country)
                 echo "\tLocation: " . $country . "\n";
 
-            $query = $db->prepare('SELECT client FROM clients WHERE address = :addr');
+            /*$query = $db->prepare('SELECT client FROM clients WHERE address = :addr');
             $query->bindValue(':addr', $row['address'], PDO::PARAM_STR);
             $query->execute();
             $res = $query->fetchAll();
@@ -42,7 +42,7 @@
                 echo "\tClients:\n";
                 foreach ($res as $client)
                     echo "\t\t" . $client['client'] . "\n";
-            }
+            }*/
         }
         $db = null;
     }

@@ -1,0 +1,7 @@
+RewriteEngine On
+RewriteRule games/?$ /games.php
+RewriteRule games_json/?$ /games_json.php
+RewriteRule ping/?$ /ping.php
+RewriteRule list/?$ /list.php
+RewriteRule list_json/?$ /list_json.php
+RewriteRule map_stats/?$ /map_stats.php
