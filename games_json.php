@@ -35,7 +35,7 @@
             if ($country)
                 $game_result['location'] = $country;
 
-            $query = $db->prepare('SELECT client FROM clients WHERE address = :addr');
+            /*$query = $db->prepare('SELECT client FROM clients WHERE address = :addr');
             $query->bindValue(':addr', $row['address'], PDO::PARAM_STR);
             $query->execute();
             $res = $query->fetchAll();
@@ -45,7 +45,7 @@
                 foreach ($res as $client)
                     array_push($clients, $client['client']);
                 $game_result['clients'] = $clients;
-            }
+            }*/
             $json_result_array[] = $game_result;
             unset($game_result);
         }

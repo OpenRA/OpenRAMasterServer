@@ -11,4 +11,4 @@ Supported output formats
 Stats
 -----
  * Uptime: http://stats.pingdom.com/zaegmvlagqpe/788265
- * Players: http://openra.ipdx.ru/graphs.html ([code](https://github.com/ihptru/OpenRA-InternalActivityStats))
+ * Players: http://activity.openra.net ([code](https://github.com/ihptru/OpenRA-InternalActivityStats))
