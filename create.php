@@ -81,6 +81,7 @@
         $schema = 'CREATE TABLE clients (
                     address VARCHAR,
                     client VARCHAR,
+                    spawn_id INTEGER DEFAULT 0,
                     ts INTEGER
         )';
         if ($db->query($schema))
