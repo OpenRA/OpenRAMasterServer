@@ -87,6 +87,22 @@
         if ($db->query($schema))
             echo "Created table 'clients'.\n";
 
+        $schema = 'CREATE TABLE sysinfo (
+                    system_id STRING PRIMARY KEY,
+                    updated DATETIME,
+                    platform STRING,
+                    os STRING,
+                    runtime STRING,
+                    gl STRING,
+                    lang STRING,
+                    version STRING,
+                    mod STRING,
+                    modversion STRING
+        )';
+
+        if ($db->query($schema))
+            echo "Created table 'sysinfo'.\n";
+
         $db = null;
     }
     catch (PDOException $e)
