@@ -6,14 +6,15 @@ if (isset($_REQUEST['id']))
     {
         $db = new PDO('sqlite:db/openra.db');
     
-        $insert = $db->prepare("INSERT OR REPLACE INTO sysinfo ('system_id','updated','platform','os','runtime','gl','lang','version','mod','modversion')
-            VALUES (:system_id, :updated, :platform, :os, :runtime, :gl, :lang, :version, :mod, :modversion)"
+        $insert = $db->prepare("INSERT OR REPLACE INTO sysinfo ('system_id','updated','platform','os','x64','runtime','gl','lang','version','mod','modversion')
+            VALUES (:system_id, :updated, :platform, :os, :x64, :runtime, :gl, :lang, :version, :mod, :modversion)"
         );
     
         $insert->bindValue(':system_id', $_REQUEST['id'], PDO::PARAM_STR);
         $insert->bindValue(':updated', date('Y-m-d H:i:s'), PDO::PARAM_STR);
         $insert->bindValue(':platform', $_REQUEST['platform'], PDO::PARAM_STR);
         $insert->bindValue(':os', $_REQUEST['os'], PDO::PARAM_STR);
+        $insert->bindValue(':x64', ($_REQUEST['x64'] == 'true' ? 1 : 0), PDO::PARAM_BOOL);
         $insert->bindValue(':runtime', $_REQUEST['runtime'], PDO::PARAM_STR);
         $insert->bindValue(':gl', $_REQUEST['gl'], PDO::PARAM_STR);
         $insert->bindValue(':lang', $_REQUEST['lang'], PDO::PARAM_STR);

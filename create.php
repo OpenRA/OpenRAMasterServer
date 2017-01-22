@@ -92,6 +92,7 @@
                     updated DATETIME,
                     platform STRING,
                     os STRING,
+                    x64 BOOL,
                     runtime STRING,
                     gl STRING,
                     lang STRING,
