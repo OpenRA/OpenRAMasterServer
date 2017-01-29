@@ -95,6 +95,7 @@
                     x64 BOOL,
                     runtime STRING,
                     gl STRING,
+                    windowsize STRING,
                     lang STRING,
                     version STRING,
                     mod STRING,
