@@ -6,8 +6,8 @@ if (isset($_REQUEST['id']))
     {
         $db = new PDO('sqlite:db/openra.db');
     
-        $insert = $db->prepare("INSERT OR REPLACE INTO sysinfo ('system_id','updated','platform','os','x64','runtime','gl','lang','version','mod','modversion')
-            VALUES (:system_id, :updated, :platform, :os, :x64, :runtime, :gl, :lang, :version, :mod, :modversion)"
+        $insert = $db->prepare("INSERT OR REPLACE INTO sysinfo ('system_id','updated','platform','os','x64','runtime','gl','lang','version','mod','modversion','sysinfoversion')
+            VALUES (:system_id, :updated, :platform, :os, :x64, :runtime, :gl, :lang, :version, :mod, :modversion, :sysinfoversion)"
         );
     
         $insert->bindValue(':system_id', $_REQUEST['id'], PDO::PARAM_STR);
@@ -21,6 +21,7 @@ if (isset($_REQUEST['id']))
         $insert->bindValue(':version', $_REQUEST['version'], PDO::PARAM_STR);
         $insert->bindValue(':mod', $_REQUEST['mod'], PDO::PARAM_STR);
         $insert->bindValue(':modversion', $_REQUEST['modversion'], PDO::PARAM_STR);
+        $insert->bindValue(':sysinfoversion', $_REQUEST['sysinfoversion'], PDO::PARAM_INT);
     
         $insert->execute();
     }

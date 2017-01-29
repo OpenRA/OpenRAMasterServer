@@ -98,7 +98,8 @@
                     lang STRING,
                     version STRING,
                     mod STRING,
-                    modversion STRING
+                    modversion STRING,
+                    sysinfoversion INTEGER
         )';
 
         if ($db->query($schema))
