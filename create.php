@@ -96,6 +96,7 @@
                     runtime STRING,
                     gl STRING,
                     windowsize STRING,
+                    windowscale STRING,
                     lang STRING,
                     version STRING,
                     mod STRING,
