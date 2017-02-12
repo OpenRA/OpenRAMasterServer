@@ -92,12 +92,16 @@
                     updated DATETIME,
                     platform STRING,
                     os STRING,
+                    x64 BOOL,
                     runtime STRING,
                     gl STRING,
+                    windowsize STRING,
+                    windowscale STRING,
                     lang STRING,
                     version STRING,
                     mod STRING,
-                    modversion STRING
+                    modversion STRING,
+                    sysinfoversion INTEGER
         )';
 
         if ($db->query($schema))
