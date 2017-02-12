@@ -28,7 +28,7 @@ if (isset($_REQUEST['id']))
         $insert->bindValue(':os', arg('os'), PDO::PARAM_STR);
 
         // OS is 64 bit. Added in protocol v2.
-        $insert->bindValue(':x64', (arg('x64', 'true') == 'true' ? 1 : 0), PDO::PARAM_BOOL);
+        $insert->bindValue(':x64', (strtolower(arg('x64', 'true')) == 'true' ? 1 : 0), PDO::PARAM_BOOL);
 
         // .NET runtime version (e.g. Mono 4.2.1). Added in protocol v1.
         $insert->bindValue(':runtime', arg('runtime'), PDO::PARAM_STR);
