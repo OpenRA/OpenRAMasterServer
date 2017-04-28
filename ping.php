@@ -7,8 +7,14 @@
     define('PORT_CHECK_TIMEOUT', 3);
     ini_set('display_errors', DEBUG);
     error_reporting(DEBUG ? E_ALL : 0);
-
+    
     header('Content-type: text/plain');
+    
+    // Define strings to blacklist in server names
+    $blacklist_servernames = "/official/";
+    
+    // Servers (IP) excluded from blacklisting
+    $whitelist_servers = array("162.248.240.74", "144.76.186.56");
 
     // === functions ===
 
@@ -16,7 +22,11 @@
     {
         return @fsockopen($ip, $port, $errno, $errstr, PORT_CHECK_TIMEOUT);
     }
-
+	
+    function check_servername($servername)
+    {
+    	return preg_match($blacklist_servernames, $servername);
+    }
     function updatedbinfo($gameinfo) {
         global $db;
 
@@ -72,7 +82,12 @@
 
         $name = urldecode($_REQUEST['name']);
         $started = '';
-
+        
+        // Check if server is using blacklisted names
+		if (check_servername($name))
+			if (!in_array($ip, $whitelist_servers))
+				die('[002] game server "'.$addr.'" contains blacklisted name');
+				
         $version_arr = explode('@', $_REQUEST['mods']);
         $game_mod = array_shift($version_arr);
         $version = implode('@', $version_arr);
