@@ -14,7 +14,7 @@
     $blacklist_servernames = "/official/";
     
     // Servers (IP) excluded from blacklisting
-    $whitelist_servers = array("162.248.240.74", "144.76.186.56");
+    $whitelist_servers = array("104.238.136.90", "144.76.186.56");
 
     // === functions ===
 
