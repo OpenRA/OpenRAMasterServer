@@ -7,7 +7,6 @@
     define('PORT_CHECK_TIMEOUT', 3);
     ini_set('display_errors', DEBUG);
     error_reporting(DEBUG ? E_ALL : 0);
-    
     header('Content-type: text/plain');
     
     // Define strings to blacklist in server names
