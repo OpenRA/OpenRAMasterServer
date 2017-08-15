@@ -83,9 +83,9 @@
         $started = '';
         
         // Check if server is using blacklisted names
-		if (check_servername($name))
-			if (!in_array($ip, $whitelist_servers))
-				die('[002] game server "'.$addr.'" contains blacklisted name');
+	if (check_servername($name))
+		if (!in_array($ip, $whitelist_servers))
+			die('[002] game server "'.$addr.'" contains blacklisted name');
 				
         $version_arr = explode('@', $_REQUEST['mods']);
         $game_mod = array_shift($version_arr);
