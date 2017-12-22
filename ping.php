@@ -181,12 +181,6 @@
             exit;
         }
 
-        if (isset($_REQUEST['new']))
-        {
-            $games = file_get_contents("games.txt");
-            file_put_contents("games.txt", $games + 1);
-        }
-
         updatedbinfo(
             array(
                 'name'      => htmlspecialchars($name),
