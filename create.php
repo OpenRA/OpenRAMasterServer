@@ -4,8 +4,7 @@
     if (php_sapi_name() != 'cli')
         die("error: not command line");
 
-    define('DATABASE', 'sqlite:db/openra.db');
-    define('SYSINFO_DATABASE', 'sqlite:db/sysinfo.db');
+    include('./config.php');
 
     $drop = False;
     try

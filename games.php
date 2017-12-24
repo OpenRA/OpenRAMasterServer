@@ -1,7 +1,7 @@
 <?php
     date_default_timezone_set('UTC');
 
-    define('DATABASE', 'sqlite:db/openra.db');
+    include('./config.php');
 
     header('Content-type: text/plain');
 

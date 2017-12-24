@@ -1,6 +1,6 @@
 <?php
 
-define('SYSINFO_DATABASE', 'sqlite:db/sysinfo.db');
+include('./config.php');
 
 function arg($var, $default = '')
 {

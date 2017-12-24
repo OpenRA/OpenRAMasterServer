@@ -4,9 +4,11 @@
     header('Content-Type: application/javascript');
     header('Access-Control-Allow-Origin: *');
 
+    include('./config.php');
+
     try
     {
-        $db = new PDO('sqlite:db/openra.db');
+        $db = new PDO(DATABASE);
         $stale = 60 * 5;
         $result = $db->query('SELECT * FROM servers WHERE (' . time() . ' - ts < ' . $stale . ') ORDER BY name');
         $n = 0;

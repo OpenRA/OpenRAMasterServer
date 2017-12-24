@@ -1,10 +1,8 @@
 <?php
     date_default_timezone_set('UTC');
 
-    // === configuration ===
-    define('DATABASE', 'sqlite:db/openra.db');
-    define('DEBUG', 0);
-    define('PORT_CHECK_TIMEOUT', 3);
+    include('./config.php');
+
     ini_set('display_errors', DEBUG);
     error_reporting(DEBUG ? E_ALL : 0);
 
