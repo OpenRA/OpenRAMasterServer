@@ -21,6 +21,11 @@
             echo "\tSpectators: " . $row['spectators'] . "\n";
             echo "\tMap: " . $row['map'] . "\n";
             echo "\tMods: " . $row['mods'] . "\n";
+
+            $modversion = explode('@', $row['mods']);
+            echo "\tMod: " . $modversion[0] . "\n";
+            echo "\tVersion: " . $modversion[1] . "\n";
+
             $protected = $row['protected'] != 0 ? 'true' : 'false';
             echo "\tTTL: " . ($stale - (time() - $row['ts'])) . "\n";
             echo "\tProtected: " . $protected . "\n";
@@ -36,12 +41,14 @@
             $query = $db->prepare('SELECT client FROM clients WHERE address = :addr');
             $query->bindValue(':addr', $row['address'], PDO::PARAM_STR);
             $query->execute();
-            $res = $query->fetchAll();
-            if ($res)
+            if ($clients = $query->fetchAll())
             {
                 echo "\tClients:\n";
-                foreach ($res as $client)
-                    echo "\t\t" . base64_encode($client['client']) . "\n";
+                foreach ($clients as $client)
+                {
+                    echo "\t\tClient:\n";
+                    echo "\t\t\tName: " . $client['client'] . "\n";
+                }
             }
         }
         $db = null;
