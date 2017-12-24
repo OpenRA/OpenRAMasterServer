@@ -15,19 +15,26 @@
         {
             $game_result = array();
             $game_result['map'] = $row['map'];
-            $game_result['mods'] = $row['mods'];
+            $game_result['mod'] = $row['mod'];
+            $game_result['version'] = $row['version'];
+            $game_result['mods'] = $row['mod'] . "@" . $row['version'];
             $game_result['name'] = $row['name'];
             $game_result['ttl'] = ($stale - (time() - $row['ts']));
-            $game_result['players'] = $row['players'];
-            $game_result['state'] = $row['state'];
+            $game_result['players'] = intval($row['players']);
+            $game_result['state'] = intval($row['state']);
             $game_result['address'] = $row['address'];
-            $game_result['id'] = $row['id'];
-            $game_result['maxplayers'] = $row['maxplayers'];
-            $game_result['bots'] = $row['bots'];
-            $game_result['spectators'] = $row['spectators'];
-            $game_result['protected'] = $row['protected'] != 0 ? 'true' : 'false';
+            $game_result['id'] = intval($row['id']);
+            $game_result['maxplayers'] = intval($row['maxplayers']);
+            $game_result['bots'] = intval($row['bots']);
+            $game_result['spectators'] = intval($row['spectators']);
+            $game_result['protected'] = $row['protected'] != 0;
+
             if ($row['state'] == 2 && $row['started'] != '')
+            {
                 $game_result['started'] = $row['started'];
+                $game_result['playtime'] = ($row['ts'] - strtotime($row['started']));
+            }
+
             $country = explode(":", $row['address']);
             array_pop($country);
             $country = implode(":", $country);
@@ -35,20 +42,32 @@
             if ($country)
                 $game_result['location'] = $country;
 
-            $query = $db->prepare('SELECT client FROM clients WHERE address = :addr');
-            $query->bindValue(':addr', $row['address'], PDO::PARAM_STR);
+            $query = $db->prepare('SELECT * FROM clients WHERE address = :address');
+            $query->bindValue(':address', $row['address'], PDO::PARAM_STR);
             $query->execute();
-            $res = $query->fetchAll();
-            if ($res)
+
+            if ($clients = $query->fetchAll())
             {
-                $clients = array();
-                foreach ($res as $client)
-                    array_push($clients, base64_encode($client['client']));
-                $game_result['clients'] = $clients;
+                $game_result['clients'] = array();
+                foreach ($clients as $client)
+                {
+                    $game_result['clients'][] = array(
+                        'name' => $client['name'],
+                        'color' => $client['color'],
+                        'faction' => $client['faction'],
+                        'team' => intval($client['team']),
+                        'spawnpoint' => intval($client['spawnpoint']),
+                        'isadmin' => $client['isadmin'] != 0,
+                        'isspectator' => $client['isspectator'] != 0,
+                        'isbot' => $client['isbot'] != 0
+                    );
+                }
             }
+
             $json_result_array[] = $game_result;
             unset($game_result);
         }
+
         print(json_encode($json_result_array));
         $db = null;
     }

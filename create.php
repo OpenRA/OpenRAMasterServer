@@ -12,46 +12,70 @@
         if ($drop)
         {
             if ($db->query('DROP TABLE servers')
-                    && $db->query('DROP TABLE finished')
-                    && $db->query('DROP TABLE map_stats')
+                    && $db->query('DROP TABLE clients')
                     && $db->query('DROP TABLE started')
-                    && $db->query('DROP TABLE clients'))
+                    && $db->query('DROP TABLE map_stats'))
                 echo "Dropped all tables.\n";
         }
 
+        // Holds currently active games
         $schema = 'CREATE TABLE servers (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name VARCHAR,
                     address VARCHAR UNIQUE,
-                    players INTEGER,
-                    state INTEGER,
                     ts INTEGER,
+                    state INTEGER,
                     map VARCHAR,
-                    mods VARCHAR,
+                    mod VARCHAR,
+                    version VARCHAR,
+                    protected BOOLEAN DEFAULT 0,
+                    players INTEGER,
                     bots VARCHAR default 0,
                     spectators INTEGER DEFAULT 0,
                     maxplayers INTEGER DEFAULT 0,
-                    protected BOOLEAN DEFAULT 0,
                     started DATETIME
         )';
         if ($db->query($schema))
             echo "Created table 'servers'.\n";
 
-        $schema = 'CREATE TABLE finished (
+        // Holds clients for currently active games
+        $schema = 'CREATE TABLE clients (
+                    address VARCHAR,
+                    name VARCHAR,
+                    color VARCHAR,
+                    faction VARCHAR,
+                    team INTEGER DEFAULT 0,
+                    spawnpoint INTEGER DEFAULT 0,
+                    isadmin BOOLEAN DEFAULT 0,
+                    isspectator BOOLEAN DEFAULT 0,
+                    isbot BOOLEAN DEFAULT 0,
+                    ts INTEGER
+        )';
+        if ($db->query($schema))
+            echo "Created table 'clients'.\n";
+
+        // Permanently records games that were started (and hopefully finished)
+        $schema = 'CREATE TABLE started (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    game_id INTEGER,
+                    protocol INTEGER DEFAULT 1,
+                    game_id INTEGER UNIQUE,
                     name VARCHAR,
                     address VARCHAR,
                     map VARCHAR,
-                    game_mod VARCHAR,
+                    mod VARCHAR,
                     version VARCHAR,
                     protected BOOLEAN DEFAULT 0,
+                    players INTEGER,
+                    bots VARCHAR default 0,
+                    spectators INTEGER DEFAULT 0,
+                    maxplayers INTEGER DEFAULT 0,
                     started DATETIME,
                     finished DATETIME
         )';
         if ($db->query($schema))
-            echo "Created table 'finished'.\n";
+            echo "Created table 'started'.\n";
 
+        // Records aggregate play counts for each map
         $schema = 'CREATE TABLE map_stats (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     map VARCHAR UNIQUE,
@@ -61,32 +85,7 @@
         if ($db->query($schema))
             echo "Created table 'map_stats'.\n";
 
-        $schema = 'CREATE TABLE started (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    game_id INTEGER,
-                    name VARCHAR,
-                    address VARCHAR,
-                    map VARCHAR,
-                    game_mod VARCHAR,
-                    version VARCHAR,
-                    players INTEGER,
-                    spectators INTEGER,
-                    bots INTEGER,
-                    protected BOOLEAN DEFAULT 0,
-                    started DATETIME
-        )';
-        if ($db->query($schema))
-            echo "Created table 'started'.\n";
-
-        $schema = 'CREATE TABLE clients (
-                    address VARCHAR,
-                    client VARCHAR,
-                    spawn_id INTEGER DEFAULT 0,
-                    ts INTEGER
-        )';
-        if ($db->query($schema))
-            echo "Created table 'clients'.\n";
-
+        // Records opt-in system information
         $schema = 'CREATE TABLE sysinfo (
                     system_id STRING PRIMARY KEY,
                     updated DATETIME,
