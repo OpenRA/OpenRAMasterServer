@@ -3,10 +3,14 @@
 
     if (php_sapi_name() != 'cli')
         die("error: not command line");
+
+    define('DATABASE', 'sqlite:db/openra.db');
+    define('SYSINFO_DATABASE', 'sqlite:db/sysinfo.db');
+
     $drop = False;
     try
     {
-        $db = new PDO('sqlite:db/openra.db');
+        $db = new PDO(DATABASE);
         echo "Connection to DB established.\n";
 
         if ($drop)
@@ -82,8 +86,12 @@
                     played_counter INTEGER,
                     last_change DATETIME
         )';
+
         if ($db->query($schema))
             echo "Created table 'map_stats'.\n";
+
+        $db = new PDO(SYSINFO_DATABASE);
+        echo "Connection to sysinfo DB established.\n";
 
         // Records opt-in system information
         $schema = 'CREATE TABLE sysinfo (
