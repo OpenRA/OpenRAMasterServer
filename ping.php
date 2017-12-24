@@ -36,6 +36,7 @@
             switch ($type)
             {
                 case PDO::PARAM_INT: $value = intval($value); break;
+                case PDO::PARAM_BOOL: $value = intval(filter_var($value, FILTER_VALIDATE_BOOLEAN)); break;
                 case PDO::PARAM_STR: $value = htmlspecialchars($value); break;
             }
 
@@ -58,7 +59,7 @@
             'bots' => PDO::PARAM_INT,
             'spectators' => PDO::PARAM_INT,
             'maxplayers' => PDO::PARAM_INT,
-            'protected' => PDO::PARAM_INT,
+            'protected' => PDO::PARAM_BOOL,
             'started' => PDO::PARAM_STR,
         );
 
@@ -72,7 +73,7 @@
             'players' => PDO::PARAM_INT,
             'spectators' => PDO::PARAM_INT,
             'bots' => PDO::PARAM_INT,
-            'protected' => PDO::PARAM_INT,
+            'protected' => PDO::PARAM_BOOL,
             'started' => PDO::PARAM_STR,
         );
 
@@ -83,7 +84,7 @@
             'map' => PDO::PARAM_STR,
             'game_mod' => PDO::PARAM_STR,
             'version' => PDO::PARAM_STR,
-            'protected' => PDO::PARAM_INT,
+            'protected' => PDO::PARAM_BOOL,
             'started' => PDO::PARAM_STR,
             'finished' => PDO::PARAM_STR,
         );
@@ -128,8 +129,8 @@
             $insert_client = $db->prepare("INSERT INTO clients " . insert_columns_sql($client_columns));
             $client_data = array(
                 'address' => $gameinfo['address'],
-                'client' => base64_decode($client),
-                'ts' => time()
+                'client' => $client['name'],
+                'ts' => $gameinfo['ts']
             );
 
             bind_columns($insert_client, $client_columns, $client_data);
@@ -227,31 +228,157 @@
         return true;
     }
 
-    // === body ===
-
-    // make sure everything required is actually set.
-    foreach(array('port', 'name', 'state', 'map', 'mods', 'players') as $key)
-        if(!isset($_REQUEST[$key]))
-            die('[003] Advertisement data is not in the expected format');
-
-    try
+    function parse_ping($data)
     {
-        $ip   = $_SERVER['REMOTE_ADDR'];
-        $port = $_REQUEST['port'];
-        $addr = $ip.':'.$port;
+        $client_copy_fields = array(
+            'Name' => 'name',
+            'Color' => 'color',
+            'Faction' => 'faction',
+            'Team' => 'team',
+            'SpawnPoint' => 'spawnpoint',
+            'IsAdmin' => 'isadmin',
+            'IsSpectator' => 'isspectator',
+            'IsBot' => 'isbot',
+        );
 
-        // don't get spammed so easily
-        if ($_REQUEST['state'] == 1)
-            if (!check_port($ip, $port))
-                die('[001] game server "'.$addr.'" does not respond');
+        $game_copy_fields = array(
+            'Name' => 'name',
+            'Mod' => 'mod',
+            'Version' => 'version',
+            'Map' => 'map',
+            'State' => 'state',
+            'MaxPlayers' => 'maxplayers',
+            'Protected' => 'protected',
+        );
+
+        $lines = explode("\n", $data);
+        if (trim(array_shift($lines)) != "Game:")
+            return false;
+
+        // Turn data into an array of (key, value, indent)
+        $statements = array();
+        foreach ($lines as $line)
+        {
+            // Ignore completely empty lines
+            if (!$line)
+                continue;
+
+            // All lines in the posted data must be key: value format
+            $split = strpos($line, ":");
+            if ($split === false)
+                return false;
+
+            // Lines must be indented with zero or more tabs (not spaces)
+            $indent = 0;
+            while ($indent < strlen($line) && $line[$indent] == "\t")
+                $indent++;
+
+            if ($indent >= $split)
+                return false;
+
+            $statements[] = array(
+                'indent' => $indent,
+                'key' => substr($line, $indent, $split - $indent),
+                'value' => trim(substr($line, $split + 1))
+            );
+        }
+
+        // Parse the statements into a bundle of game info
+        $gameinfo = array(
+            'ts' => time(),
+            'clients' => array(),
+            'spectators' => 0,
+            'bots' => 0,
+        );
+
+        $client = -1;
+        $parse_clients = false;
+        foreach ($statements as $statement)
+        {
+            if ($parse_clients)
+            {
+                // New client block
+                if ($statement['indent'] == 2 && $statement['key'] == 'Client')
+                {
+                    $gameinfo['clients'][] = array();
+                    $client += 1;
+                }
+
+                // Client data
+                else if ($statement['indent'] == 3)
+                {
+                    // Copy over simple values
+                    if (array_key_exists($statement['key'], $client_copy_fields))
+                        $gameinfo['clients'][$client][$client_copy_fields[$statement['key']]] = $statement['value'];
+
+                    // Some client fields require extra logic
+                    switch ($statement['key'])
+                    {
+                        case 'IsSpectator':
+                            if (filter_var($statement['value'], FILTER_VALIDATE_BOOLEAN))
+                                $gameinfo['spectators'] += 1;
+                            break;
+                        case 'IsBot':
+                            if (filter_var($statement['value'], FILTER_VALIDATE_BOOLEAN))
+                                $gameinfo['bots'] += 1;
+                            break;
+                    }
+                }
+
+                // Invalid syntax
+                else
+                    return false;
+
+                continue;
+            }
+
+            // All non-client nodes must have a single level of indentation
+            if ($statement['indent'] != 1)
+                return false;
+
+            // Copy over simple values
+            if (array_key_exists($statement['key'], $game_copy_fields))
+                $gameinfo[$game_copy_fields[$statement['key']]] = $statement['value'];
+
+            // Some fields require extra logic
+            switch ($statement['key'])
+            {
+                case 'Address':
+                    $gameinfo['port'] = array_pop(explode(':', $statement['value']));
+                    break;
+                case 'Clients':
+                    $parse_clients = true;
+                    break;
+            }
+        }
+
+        // Check that we got data for all the expected fields
+        if (sizeof($gameinfo) != 12)
+            return false;
+
+        foreach ($gameinfo['clients'] as $client)
+            if (sizeof($client) != 8)
+                return false;
+
+        $gameinfo['players'] = sizeof($gameinfo['clients']) - $gameinfo['spectators'] - $gameinfo['bots'];
+        $gameinfo['mods'] = $gameinfo['mod']."@".$gameinfo['version'];
+        return $gameinfo;
+    }
+
+    function parse_legacy_ping()
+    {
+        // Make sure everything we need is actually set.
+        foreach (array('port', 'name', 'state', 'map', 'mods', 'players') as $key)
+            if (!isset($_REQUEST[$key]))
+                return false;
 
         $version_arr = explode('@', $_REQUEST['mods']);
         $mod = array_shift($version_arr);
         $mod_version = implode('@', $version_arr);
 
-        update_db_info(array(
+        return array(
             'name'      => urldecode($_REQUEST['name']),
-            'address'   => $addr,
+            'port'      => $_REQUEST['port'],
             'players'   => $_REQUEST['players'],
             'state'     => $_REQUEST['state'],
             'ts'        => time(),
@@ -261,10 +388,27 @@
             'spectators'=> isset($_REQUEST['spectators']) ? $_REQUEST['spectators'] : 0,
             'maxplayers'=> isset($_REQUEST['maxplayers']) ? $_REQUEST['maxplayers'] : 0,
             'protected' => isset($_REQUEST['protected']) ? $_REQUEST['protected'] : 0,
-            'clients'   => isset($_REQUEST['clients']) ? explode(",", $_REQUEST['clients']) : array(),
+            'clients'   => array(),
             'mod'       => $mod,
             'version'   => $mod_version,
-        ));
+        );
+    }
+
+    // === body ===
+
+    try
+    {
+        $postdata = file_get_contents('php://input');
+        $gameinfo = $postdata ? parse_ping($postdata) : parse_legacy_ping();
+        if (!$gameinfo)
+            die('[003] Advertisement data is not in the expected format');
+
+        $port = intval($gameinfo['port']);
+        $gameinfo['address'] = $_SERVER['REMOTE_ADDR'].':'.$port;
+        if ($gameinfo['state'] == 1 && !check_port($_SERVER['REMOTE_ADDR'], $port))
+            die('[001] game server "'.$gameinfo['address'].'" does not respond');
+
+        update_db_info($gameinfo);
     }
     catch (Exception $e)
     {
