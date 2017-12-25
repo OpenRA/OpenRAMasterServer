@@ -5,8 +5,8 @@ Scripts that make up the [OpenRA](http://www.openra.net) project's master server
 
 Supported output formats
 ------------------------
- * MiniYAML: http://master.openra.net/games
- * JSON: http://master.openra.net/games_json
+ * MiniYAML: http://master.openra.net/games?protocol=2
+ * JSON: http://master.openra.net/games?protocol=2&type=json
 
 Stats
 -----
