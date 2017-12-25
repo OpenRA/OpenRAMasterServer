@@ -1,10 +1,8 @@
 <?php
     date_default_timezone_set('UTC');
 
-    // === configuration ===
-    define('DATABASE', 'sqlite:db/openra.db');
-    define('DEBUG', 0);
-    define('PORT_CHECK_TIMEOUT', 3);
+    include('./config.php');
+
     ini_set('display_errors', DEBUG);
     error_reporting(DEBUG ? E_ALL : 0);
 
@@ -51,53 +49,51 @@
         $server_columns = array(
             'name' => PDO::PARAM_STR,
             'address' => PDO::PARAM_STR,
-            'players' => PDO::PARAM_INT,
-            'state' => PDO::PARAM_INT,
             'ts' => PDO::PARAM_INT,
+            'state' => PDO::PARAM_INT,
             'map' => PDO::PARAM_STR,
-            'mods' => PDO::PARAM_STR,
+            'mod' => PDO::PARAM_STR,
+            'version' => PDO::PARAM_STR,
+            'protected' => PDO::PARAM_BOOL,
+            'players' => PDO::PARAM_INT,
             'bots' => PDO::PARAM_INT,
             'spectators' => PDO::PARAM_INT,
             'maxplayers' => PDO::PARAM_INT,
-            'protected' => PDO::PARAM_BOOL,
             'started' => PDO::PARAM_STR,
         );
 
+        // Bump the protocol version whenever columns are added
+        $started_protocol = 2;
         $started_columns = array(
             'game_id' => PDO::PARAM_INT,
+            'protocol' => PDO::PARAM_INT,
             'name' => PDO::PARAM_STR,
             'address' => PDO::PARAM_STR,
             'map' => PDO::PARAM_STR,
-            'game_mod' => PDO::PARAM_STR,
+            'mod' => PDO::PARAM_STR,
             'version' => PDO::PARAM_STR,
+            'protected' => PDO::PARAM_BOOL,
             'players' => PDO::PARAM_INT,
-            'spectators' => PDO::PARAM_INT,
             'bots' => PDO::PARAM_INT,
-            'protected' => PDO::PARAM_BOOL,
+            'spectators' => PDO::PARAM_INT,
+            'maxplayers' => PDO::PARAM_INT,
             'started' => PDO::PARAM_STR,
-        );
-
-        $finished_columns = array(
-            'game_id' => PDO::PARAM_INT,
-            'name' => PDO::PARAM_STR,
-            'address' => PDO::PARAM_STR,
-            'map' => PDO::PARAM_STR,
-            'game_mod' => PDO::PARAM_STR,
-            'version' => PDO::PARAM_STR,
-            'protected' => PDO::PARAM_BOOL,
-            'started' => PDO::PARAM_STR,
-            'finished' => PDO::PARAM_STR,
         );
 
         $client_columns = array(
             'address' => PDO::PARAM_STR,
-            'client' => PDO::PARAM_STR,
+            'name' => PDO::PARAM_STR,
+            'color' => PDO::PARAM_STR,
+            'faction' => PDO::PARAM_STR,
+            'team' => PDO::PARAM_INT,
+            'spawnpoint' => PDO::PARAM_INT,
+            'isadmin' => PDO::PARAM_BOOL,
+            'isspectator' => PDO::PARAM_BOOL,
+            'isbot' => PDO::PARAM_BOOL,
             'ts' => PDO::PARAM_INT,
         );
 
         // Check the last state of the server
-        $gameinfo['last_state'] = 1;
-        $gameinfo['started'] = '';
         $query_state = $db->prepare('SELECT id, state, started FROM servers WHERE address = :address');
         $query_state->bindValue(':address', $gameinfo['address'], PDO::PARAM_STR);
         $query_state->execute();
@@ -127,18 +123,17 @@
         foreach ($gameinfo['clients'] as $client)
         {
             $insert_client = $db->prepare("INSERT INTO clients " . insert_columns_sql($client_columns));
-            $client_data = array(
+            $client_data = array_merge($client, array(
                 'address' => $gameinfo['address'],
-                'client' => $client['name'],
                 'ts' => $gameinfo['ts']
-            );
+            ));
 
             bind_columns($insert_client, $client_columns, $client_data);
             $insert_client->execute();
         }
 
         // Game has just started
-        if ($gameinfo['last_state'] == 1 && $gameinfo['state'] == 2)
+        if (array_key_exists('last_state', $gameinfo) && $gameinfo['last_state'] == 1 && $gameinfo['state'] == 2)
         {
             // Set the started field in the servers table
             $set_started = $db->prepare("UPDATE OR FAIL `servers` SET 'started' = :started WHERE address = :address");
@@ -151,22 +146,14 @@
                 $set_started->debugDumpParams();
 
             // Copy server record to the started table
-            // HACK: Why is this data interesting?
-            // TODO: Remove it?
+            // This freezes the state (mainly the player count) at the time that the game started
             $copy_started = $db->prepare("INSERT INTO started " . insert_columns_sql($started_columns));
-            $started_data = array(
-                'game_id' => $gameinfo['id'],
-                'name' => $gameinfo['name'],
-                'address' => $gameinfo['address'],
-                'map' => $gameinfo['map'],
-                'game_mod' => $gameinfo['mod'],
-                'version' => $gameinfo['version'],
-                'players' => $gameinfo['players'],
-                'spectators' => $gameinfo['spectators'],
-                'bots' => $gameinfo['bots'],
-                'protected' => $gameinfo['protected'],
-                'started' => $gameinfo['started'],
-            );
+
+            // Copy all the game info except for 'id', which maps to 'game_id'
+            $started_data = $gameinfo;
+            unset($started_data['id']);
+            $started_data['game_id'] = $gameinfo['id'];
+            $started_data['protocol'] = $started_protocol;
 
             bind_columns($copy_started, $started_columns, $started_data);
             $copy_started->execute();
@@ -176,7 +163,7 @@
         else if ($gameinfo['state'] == 3)
         {
             // Game actually started
-            if ($gameinfo['last_state'] == 2)
+            if (array_key_exists('last_state', $gameinfo) && array_key_exists('id', $gameinfo) && $gameinfo['last_state'] == 2)
             {
                 // Update map stats
                 $update_map_plays = $db->prepare('UPDATE map_stats SET played_counter = played_counter + 1 WHERE map = :map');
@@ -194,24 +181,15 @@
                 if (DEBUG)
                     $update_map_plays->debugDumpParams();
 
-                // Copy server record to the finished table
-                $copy_finished = $db->prepare("INSERT INTO finished " . insert_columns_sql($finished_columns));
-                $finished_data = array(
-                    'game_id' => $gameinfo['id'],
-                    'name' => $gameinfo['name'],
-                    'address' => $gameinfo['address'],
-                    'map' => $gameinfo['map'],
-                    'game_mod' => $gameinfo['mod'],
-                    'version' => $gameinfo['version'],
-                    'protected' => $gameinfo['protected'],
-                    'started' => $gameinfo['started'],
-                    'finished' => date('Y-m-d H:i:s'),
-                );
+                // Record the finish time on the started table
+                $set_finished = $db->prepare("UPDATE OR FAIL started SET 'finished' = :finished WHERE game_id = :game_id");
+                $gameinfo['finished'] = date('Y-m-d H:i:s');
+                $set_finished->bindValue(':finished', date('Y-m-d H:i:s'), PDO::PARAM_STR);
+                $set_finished->bindValue(':game_id', $gameinfo['id'], PDO::PARAM_STR);
+                $set_finished->execute();
 
-                bind_columns($copy_finished, $finished_columns, $finished_data);
-                $copy_finished->execute();
                 if (DEBUG)
-                    $copy_finished->debugDumpParams();
+                    $set_finished->debugDumpParams();
             }
 
             $remove = $db->prepare('DELETE FROM `servers` WHERE address = :addr');
@@ -298,7 +276,7 @@
             if ($parse_clients)
             {
                 // New client block
-                if ($statement['indent'] == 2 && $statement['key'] == 'Client')
+                if ($statement['indent'] == 2 && preg_match('/Client@\d+/', $statement['key']))
                 {
                     $gameinfo['clients'][] = array();
                     $client += 1;
@@ -361,7 +339,6 @@
                 return false;
 
         $gameinfo['players'] = sizeof($gameinfo['clients']) - $gameinfo['spectators'] - $gameinfo['bots'];
-        $gameinfo['mods'] = $gameinfo['mod']."@".$gameinfo['version'];
         return $gameinfo;
     }
 
@@ -383,7 +360,6 @@
             'state'     => $_REQUEST['state'],
             'ts'        => time(),
             'map'       => $_REQUEST['map'],
-            'mods'      => $_REQUEST['mods'],
             'bots'      => isset($_REQUEST['bots']) ? $_REQUEST['bots'] : 0,
             'spectators'=> isset($_REQUEST['spectators']) ? $_REQUEST['spectators'] : 0,
             'maxplayers'=> isset($_REQUEST['maxplayers']) ? $_REQUEST['maxplayers'] : 0,
