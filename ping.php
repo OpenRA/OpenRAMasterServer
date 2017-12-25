@@ -192,13 +192,18 @@
                     $set_finished->debugDumpParams();
             }
 
-            $remove = $db->prepare('DELETE FROM `servers` WHERE address = :addr');
+            $remove = $db->prepare('DELETE FROM servers WHERE address = :addr');
             $remove->bindValue(':addr', $gameinfo['address'], PDO::PARAM_STR);
             $remove->execute();
-            $db->query('DELETE FROM servers WHERE (' . time() . ' - ts > 300)');
 
-            $remove = $db->prepare('DELETE FROM clients WHERE address = :addr OR (' . time() . ' - ts > 300)');
+            $stale_ts = time() - STALE_GAME_TIMEOUT;
+            $remove = $db->prepare('DELETE FROM servers WHERE ts < :stale');
+            $remove->bindValue(':stale', $stale_ts, PDO::PARAM_INT);
+            $remove->execute();
+
+            $remove = $db->prepare('DELETE FROM clients WHERE address = :addr OR ts < :stale');
             $remove->bindValue(':addr', $gameinfo['address'], PDO::PARAM_STR);
+            $remove->bindValue(':stale', $stale_ts, PDO::PARAM_INT);
             $remove->execute();
         }
 
