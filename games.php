@@ -4,18 +4,35 @@ date_default_timezone_set('UTC');
 
 include('./config.php');
 
+function order_servers($a, $b)
+{
+    // Find the offset of the first alphabetic character in the server name
+    preg_match('~[a-z]~i', $a['name'], $a_start, PREG_OFFSET_CAPTURE);
+    preg_match('~[a-z]~i', $b['name'], $b_start, PREG_OFFSET_CAPTURE);
+
+    // Compare the alphabetic portion only, ignoring special characters at the start
+    // Servers without any alphabetic characters are pushed to the end
+    $a_comp = $a_start ? substr($a['name'], $a_start[0][1]) : "z" . $a['name'];
+    $b_comp = $b_start ? substr($b['name'], $b_start[0][1]) : "z" . $b['name'];
+
+    return strcasecmp($a_comp, $b_comp);
+}
+
 function query_games($protocol)
 {
     try
     {
         $db = new PDO(DATABASE);
 
-        $query = $db->prepare('SELECT * FROM servers WHERE ts > :recent ORDER BY name');
+        $query = $db->prepare('SELECT * FROM servers WHERE ts > :recent');
         $query->bindValue(':recent', time() - STALE_GAME_TIMEOUT, PDO::PARAM_INT);
         $query->execute();
 
+        $rows = $query->fetchAll();
+        uasort($rows, "order_servers");
+
         $servers = array();
-        while ($row = $query->fetch())
+        foreach ($rows as $row)
         {
             // Attempt country lookup for consumers that don't have their own GeoIP facilities
             if (ENABLE_GEOIP)
