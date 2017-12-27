@@ -13,8 +13,8 @@ if (isset($_REQUEST['id']))
     {
         $db = new PDO(SYSINFO_DATABASE);
 
-        $insert = $db->prepare("INSERT OR REPLACE INTO sysinfo ('system_id','updated','platform','os','x64','runtime','gl','windowsize','windowscale','lang','version','mod','modversion','sysinfoversion')
-            VALUES (:system_id, :updated, :platform, :os, :x64, :runtime, :gl, :windowsize, :windowscale, :lang, :version, :mod, :modversion, :sysinfoversion)"
+        $insert = $db->prepare("INSERT OR REPLACE INTO sysinfo ('system_id','updated','platform','os','x64','x64process','runtime','gl','windowsize','windowscale','lang','version','mod','modversion','sysinfoversion')
+            VALUES (:system_id, :updated, :platform, :os, :x64, :x64process, :runtime, :gl, :windowsize, :windowscale, :lang, :version, :mod, :modversion, :sysinfoversion)"
         );
 
         // Anonymous user GUID. Added in protocol v1.
@@ -31,6 +31,9 @@ if (isset($_REQUEST['id']))
 
         // OS is 64 bit. Added in protocol v2.
         $insert->bindValue(':x64', (strtolower(arg('x64', 'true')) == 'true' ? 1 : 0), PDO::PARAM_BOOL);
+
+        // OS is 64 bit. Added in protocol v3.
+        $insert->bindValue(':x64process', (strtolower(arg('x64process', 'false')) == 'true' ? 1 : 0), PDO::PARAM_BOOL);
 
         // .NET runtime version (e.g. Mono 4.2.1). Added in protocol v1.
         $insert->bindValue(':runtime', arg('runtime'), PDO::PARAM_STR);
