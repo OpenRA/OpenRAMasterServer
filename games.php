@@ -4,18 +4,23 @@ date_default_timezone_set('UTC');
 
 include('./config.php');
 
-function order_servers($a, $b)
+function order_servers($servers)
 {
-    // Find the offset of the first alphabetic character in the server name
-    preg_match('~[a-z]~i', $a['name'], $a_start, PREG_OFFSET_CAPTURE);
-    preg_match('~[a-z]~i', $b['name'], $b_start, PREG_OFFSET_CAPTURE);
+	// Create an array of server names, with any non-alphanumeric characters replaced with z
+	$names = array();
+	foreach ($servers as $key => $server)
+		$names[$key] = strtolower(preg_replace("/[^\p{L}|\p{N}]/u", 'z', Normalizer::normalize($server['name'])));
 
-    // Compare the alphabetic portion only, ignoring special characters at the start
-    // Servers without any alphabetic characters are pushed to the end
-    $a_comp = $a_start ? substr($a['name'], $a_start[0][1]) : "z" . $a['name'];
-    $b_comp = $b_start ? substr($b['name'], $b_start[0][1]) : "z" . $b['name'];
+	// Create a Collator and UTF-8 sort
+	$collator = new Collator('en_US');
+	$collator->asort($names);
 
-    return strcasecmp($a_comp, $b_comp);
+	// Finally create a sorted array using the result from the UTF-8 sort
+	$result = array();
+	foreach ($names as $key => $value)
+		$result[] = $servers[$key];
+
+	return $result;
 }
 
 function query_games($protocol)
@@ -28,8 +33,7 @@ function query_games($protocol)
         $query->bindValue(':recent', time() - STALE_GAME_TIMEOUT, PDO::PARAM_INT);
         $query->execute();
 
-        $rows = $query->fetchAll();
-        uasort($rows, "order_servers");
+        $rows = order_servers($query->fetchAll());
 
         $servers = array();
         foreach ($rows as $row)
