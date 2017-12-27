@@ -1,74 +1,198 @@
 <?php
-    date_default_timezone_set('UTC');
 
-    include('./config.php');
+date_default_timezone_set('UTC');
 
-    header('Content-type: text/plain');
+include('./config.php');
 
+function query_games($protocol)
+{
     try
     {
         $db = new PDO(DATABASE);
-        $stale = 60 * 5;
-        $result = $db->query('SELECT * FROM servers WHERE (' . time() . ' - ts < ' . $stale . ') ORDER BY name');
-        $n = 0;
-        foreach ($result as $row)
-        {
-            echo "Game@" . $n++ . ":\n";
-            echo "\tId: " . $row['id'] . "\n";
-            echo "\tName: " . $row['name'] . "\n";
-            echo "\tAddress: " . $row['address'] . "\n";
-            echo "\tState: " . $row['state'] . "\n";
-            echo "\tPlayers: " . $row['players'] . "\n";
-            echo "\tMaxPlayers: " . $row['maxplayers'] . "\n";
-            echo "\tBots: " . $row['bots'] . "\n";
-            echo "\tSpectators: " . $row['spectators'] . "\n";
-            echo "\tMap: " . $row['map'] . "\n";
-            echo "\tMods: " . $row['mod'] . "@" . $row['version'] . "\n";
-            echo "\tMod: " .$row['mod'] . "\n";
-            echo "\tVersion: " . $row['version'] . "\n";
 
-            $protected = $row['protected'] != 0 ? 'true' : 'false';
-            echo "\tTTL: " . ($stale - (time() - $row['ts'])) . "\n";
-            echo "\tProtected: " . $protected . "\n";
-            if ($row['state'] == 2 && $row['started'] != '')
+        $query = $db->prepare('SELECT * FROM servers WHERE ts > :recent ORDER BY name');
+        $query->bindValue(':recent', time() - STALE_GAME_TIMEOUT, PDO::PARAM_INT);
+        $query->execute();
+
+        $servers = array();
+        while ($row = $query->fetch())
+        {
+            // Attempt country lookup for consumers that don't have their own GeoIP facilities
+            if (ENABLE_GEOIP)
             {
-                echo "\tStarted: " . $row['started'] . "\n";
-                echo "\tPlayTime: " . ($row['ts'] - strtotime($row['started'])) . "\n";
+                $country = explode(":", $row['address']);
+                array_pop($country);
+                $country = implode(":", $country);
+                $country = geoip_country_name_by_name($country);
             }
 
-            $country = explode(":", $row['address']);
-            array_pop($country);
-            $country = implode(":", $country);
-            $country = geoip_country_name_by_name($country);
-            if ($country)
-                echo "\tLocation: " . $country . "\n";
+            $ttl = $row['ts'] + STALE_GAME_TIMEOUT - time();
 
-            $query = $db->prepare('SELECT * FROM clients WHERE address = :address');
-            $query->bindValue(':address', $row['address'], PDO::PARAM_STR);
-            $query->execute();
-            if ($clients = $query->fetchAll())
+            if ($protocol == 1)
             {
-                echo "\tClients:\n";
-                $i = 0;
-                foreach ($clients as $client)
+                // Original protocol returned everything as strings
+                // and combined the mod and version into a single field
+                $server = array(
+                    'id' => $row['id'],
+                    'name' => $row['name'],
+                    'address' => $row['address'],
+                    'state' => $row['state'],
+                    'ttl' => $ttl,
+                    'mods' => $row['mod'] . "@" . $row['version'],
+                    'map' => $row['map'],
+                    'players' => $row['players'],
+                    'maxplayers' => $row['maxplayers'],
+                    'bots' => $row['bots'],
+                    'spectators' => $row['spectators'],
+                    'protected' => $row['protected'] != 0 ? 'true' : 'false'
+                );
+
+                if (isset($country))
+                    $server['location'] = $country;
+
+                if ($row['state'] == 2 && $row['started'])
+                    $server['started'] = $row['started'];
+            }
+            else
+            {
+                // Version 2 used correct types, separates mod and version fields,
+                // adds a playtime field, and client data
+                $server = array(
+                    'id' => intval($row['id']),
+                    'name' => $row['name'],
+                    'address' => $row['address'],
+                    'state' => intval($row['state']),
+                    'ttl' => $ttl,
+                    'mod' => $row['mod'],
+                    'version' => $row['version'],
+                    'map' => $row['map'],
+                    'players' => intval($row['players']),
+                    'maxplayers' => intval($row['maxplayers']),
+                    'bots' => intval($row['bots']),
+                    'spectators' => intval($row['spectators']),
+                    'protected' => $row['protected'] != 0,
+                );
+
+                if (isset($country))
+                    $server['location'] = $country;
+
+                if ($row['state'] == 2 && $row['started'])
                 {
-                    echo "\t\tClient@" . $i++ . ":\n";
-                    echo "\t\t\tName: " . $client['name'] . "\n";
-                    echo "\t\t\tColor: " . $client['color'] . "\n";
-                    echo "\t\t\tFaction: " . $client['faction'] . "\n";
-                    echo "\t\t\tTeam: " . $client['team'] . "\n";
-                    echo "\t\t\tSpawnPoint: " . $client['spawnpoint'] . "\n";
-                    echo "\t\t\tIsAdmin: " . ($client['isadmin'] != 0 ? 'true' : 'false') . "\n";
-                    echo "\t\t\tIsSpectator: " . ($client['isspectator'] != 0 ? 'true' : 'false') . "\n";
-                    echo "\t\t\tIsBot: " . ($client['isbot'] != 0 ? 'true' : 'false') . "\n";
+                    $server['started'] = $row['started'];
+                    $server['playtime'] = time() - strtotime($row['started']);
+                }
+
+                $server['clients'] = array();
+
+                $client_query = $db->prepare('SELECT * FROM clients WHERE address = :address');
+                $client_query->bindValue(':address', $row['address'], PDO::PARAM_STR);
+                $client_query->execute();
+                while ($client = $client_query->fetch())
+                {
+                    $server['clients'][] = array(
+                        'name' => $client['name'],
+                        'color' => $client['color'],
+                        'faction' => $client['faction'],
+                        'team' => intval($client['team']),
+                        'spawnpoint' => intval($client['spawnpoint']),
+                        'isadmin' => $client['isadmin'] != 0,
+                        'isspectator' => $client['isspectator'] != 0,
+                        'isbot' => $client['isbot'] != 0
+                    );
                 }
             }
+
+            $servers[] = $server;
         }
 
-        $db = null;
+        return $servers;
     }
-    catch (PDOException $e)
+    catch (Exception $e)
     {
-        echo $e->getMessage();
+        return array();
     }
+}
+
+function try_print_yaml_node($key, $value, $name_map, $indent)
+{
+    if (!array_key_exists($key, $name_map))
+        return false;
+
+    if ($value === true)
+        $value = 'true';
+    if ($value === false)
+        $value = 'false';
+
+    print(str_repeat("\t", $indent) . $name_map[$key] . ": " . $value . "\n");
+    return true;
+}
+
+$output_json = isset($_REQUEST['type']) && $_REQUEST['type'] == 'json';
+$protocol = isset($_REQUEST['protocol']) ? intval($_REQUEST['protocol']) : 1;
+if ($protocol < 1)
+    $protocol = 1;
+
+if ($output_json)
+{
+    header('Content-Type: application/javascript');
+    header('Access-Control-Allow-Origin: *');
+    print(json_encode(query_games($protocol)));
+}
+else
+{
+    header('Content-type: text/plain');
+
+    $name_map = array(
+        'id' => 'Id',
+        'name' => 'Name',
+        'address' => 'Address',
+        'state' => 'State',
+        'ttl' => 'TTL',
+        'mods' => 'Mods',
+        'mod' => 'Mod',
+        'version' => 'Version',
+        'map' => 'Map',
+        'players' => 'Players',
+        'maxplayers' => 'MaxPlayers',
+        'bots' => 'Bots',
+        'spectators' => 'Spectators',
+        'protected' => 'Protected',
+        'location' => 'Location',
+        'started' => 'Started',
+        'playtime' => 'PlayTime',
+    );
+
+    $client_name_map = array(
+        'name' => 'Name',
+        'color' => 'Color',
+        'faction' => 'Faction',
+        'team' => 'Team',
+        'spawnpoint' => 'SpawnPoint',
+        'isadmin' => 'IsAdmin',
+        'isspectator' => 'IsSpectator',
+        'isbot' => 'IsBot'
+    );
+
+    $i = 0;
+    $data = query_games($protocol);
+    foreach ($data as $game)
+    {
+        print("Game@" . $i++ . ":\n");
+        foreach ($game as $key => $value)
+            try_print_yaml_node($key, $value, $name_map, 1);
+
+        if (array_key_exists('clients', $game))
+        {
+            $j = 0;
+            print("\tClients:\n");
+            foreach ($game['clients'] as $client)
+            {
+                print("\t\tClient@" . $j++ . ":\n");
+                foreach ($client as $key => $value)
+                    try_print_yaml_node($key, $value, $client_name_map, 3);
+            }
+        }
+    }
+}
+
 ?>

@@ -1,5 +1,10 @@
+Options -Indexes
+
+Redirect "/games_json" "/games?type=json"
+Redirect "/games_json.php" "/games.php?type=json"
+Redirectmatch ^/$ http://www.openra.net/games/
+
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^([^.]+)?$ $1.php
-
+RewriteRule ^([^.]+)?$ $1.php [L]
