@@ -1,4 +1,5 @@
 # Append contents to apache virtual host config in apache directory -> for example: sitename.conf. 
+# Replace /path/to/repository/root and ServerName/ServerAlias/ServerAdmin appropriately.
 # Then:
 # 1. sudo a2ensite sitename
 # 2. service apache2 reload
