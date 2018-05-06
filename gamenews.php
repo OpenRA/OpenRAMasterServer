@@ -70,6 +70,6 @@ if (isset($_REQUEST['id']))
     }
 }
 
-header('Location: http://www.openra.net/gamenews');
+header('Location: https://www.openra.net/gamenews');
 
 ?>

@@ -3,7 +3,7 @@ if (in_array($_REQUEST['mod'], array('ra', 'cnc', 'd2k')))
 {
     try
     {
-        $data = json_decode(file_get_contents("http://www.openra.net/versions.json"), true);
+        $data = json_decode(file_get_contents("https://www.openra.net/versions.json"), true);
         $version = $_REQUEST['version'];
         if (!in_array($version, $data['known_versions']))
             print('unknown');
