@@ -234,6 +234,12 @@
             'Protected' => 'protected',
         );
 
+        $game_required_fields = array(
+            'name', 'mod', 'version', 'map',
+            'state', 'maxplayers', 'protected', 'clients',
+            'spectators', 'bots', 'port', 'ts'
+        );
+
         $lines = explode("\n", $data);
         if (trim(array_shift($lines)) != "Game:")
             return false;
@@ -335,9 +341,10 @@
             }
         }
 
-        // Check that we got data for all the expected fields
-        if (sizeof($gameinfo) != 12)
-            return false;
+        // Check that we got data for all the required fields
+        foreach ($game_required_fields as $field)
+            if (!array_key_exists($field, $gameinfo))
+                return false;
 
         foreach ($gameinfo['clients'] as $client)
             if (sizeof($client) != 8)
