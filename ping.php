@@ -15,6 +15,49 @@
         return @fsockopen($ip, $port, $errno, $errstr, PORT_CHECK_TIMEOUT);
     }
 
+    // Validates that a given url is a png image of
+    // dimensions $size x $size (size MUST be < 256)
+    function check_mod_icon($url, $size)
+    {
+        $ch = curl_init($url);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+        curl_setopt($ch, CURLOPT_HEADER, TRUE);
+        curl_setopt($ch, CURLOPT_NOBODY, TRUE);
+
+        // 1 second timeout
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 1);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+
+        // Check that the image exists and has a sensible content type
+        $data = curl_exec($ch);
+        $retcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $contentlength = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+        $type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        curl_close($ch);
+
+        if ($retcode != 200)
+            return '[-10] Invalid mod icon: file not found.';
+
+        if ($type != "image/png")
+            return '[-11] Invalid mod icon: Content-Type is not image/png.';
+
+        // Check that the image header is consistent with the requested png size
+        $expect_data = array(
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,  // PNG header
+            0x00, 0x00, 0x00, 0x0D, // IHDR length (13 bytes)
+            0x49, 0x48, 0x44, 0x52, // IHDR string
+            0x00, 0x00, 0x00, $size, // Image width (big endian)
+            0x00, 0x00, 0x00, $size); // Image height (big endian)
+
+        $bytes = file_get_contents($url, FALSE, NULL, 0, 24);
+        for ($i = 0; $i < 24; $i++)
+            if (ord($bytes[$i]) != $expect_data[$i])
+                return '[-12] Invalid mod icon: not a ' . $size . ' x ' . $size . ' px png.';
+
+        return null;
+    }
+
     function insert_columns_sql($columns)
     {
         return "('" . implode("', '", array_keys($columns)) . "') VALUES (:" . implode(', :', array_keys($columns)) . ")";
@@ -49,6 +92,9 @@
         $server_columns = array(
             'name' => PDO::PARAM_STR,
             'address' => PDO::PARAM_STR,
+            'modtitle' => PDO::PARAM_STR,
+            'modwebsite' => PDO::PARAM_STR,
+            'modicon32' => PDO::PARAM_STR,
             'ts' => PDO::PARAM_INT,
             'state' => PDO::PARAM_INT,
             'map' => PDO::PARAM_STR,
@@ -228,10 +274,19 @@
             'Name' => 'name',
             'Mod' => 'mod',
             'Version' => 'version',
+            'ModTitle' => 'modtitle',
+            'ModWebsite' => 'modwebsite',
+            'ModIcon32' => 'modicon32',
             'Map' => 'map',
             'State' => 'state',
             'MaxPlayers' => 'maxplayers',
             'Protected' => 'protected',
+        );
+
+        $game_required_fields = array(
+            'name', 'mod', 'version', 'map',
+            'state', 'maxplayers', 'protected', 'clients',
+            'spectators', 'bots', 'port', 'ts'
         );
 
         $lines = explode("\n", $data);
@@ -335,9 +390,10 @@
             }
         }
 
-        // Check that we got data for all the expected fields
-        if (sizeof($gameinfo) != 12)
-            return false;
+        // Check that we got data for all the required fields
+        foreach ($game_required_fields as $field)
+            if (!array_key_exists($field, $gameinfo))
+                return false;
 
         foreach ($gameinfo['clients'] as $client)
             if (sizeof($client) != 8)
@@ -388,6 +444,17 @@
         $gameinfo['address'] = $_SERVER['REMOTE_ADDR'].':'.$port;
         if ($gameinfo['state'] == 1 && !check_port($_SERVER['REMOTE_ADDR'], $port))
             die('[001] game server "'.$gameinfo['address'].'" does not respond');
+
+        // Icon checks may generate non-fatal warnings, but not errors
+        if ($gameinfo['modicon32'])
+        {
+            $warning = check_mod_icon($gameinfo['modicon32'], 32);
+            if ($warning)
+            {
+                print($warning);
+                $gameinfo['modicon32'] = '';
+            }
+        }
 
         update_db_info($gameinfo);
     }

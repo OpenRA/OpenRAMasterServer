@@ -78,6 +78,7 @@ function query_games($protocol)
             {
                 // Version 2 used correct types, separates mod and version fields,
                 // adds a playtime field, and client data
+                // Version 2.1 added optional fields for mod title, mod website, and 32px mod icon
                 $server = array(
                     'id' => intval($row['id']),
                     'name' => $row['name'],
@@ -86,6 +87,9 @@ function query_games($protocol)
                     'ttl' => $ttl,
                     'mod' => $row['mod'],
                     'version' => $row['version'],
+                    'modtitle' => $row['modtitle'],
+                    'modwebsite' => $row['modwebsite'],
+                    'modicon32' => $row['modicon32'],
                     'map' => $row['map'],
                     'players' => intval($row['players']),
                     'maxplayers' => intval($row['maxplayers']),
@@ -172,6 +176,9 @@ else
         'mods' => 'Mods',
         'mod' => 'Mod',
         'version' => 'Version',
+        'modtitle' => 'ModTitle',
+        'modversion' => 'ModVersion',
+        'modicon32' => 'ModIcon32',
         'map' => 'Map',
         'players' => 'Players',
         'maxplayers' => 'MaxPlayers',
