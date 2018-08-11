@@ -270,6 +270,11 @@
             'IsBot' => 'isbot',
         );
 
+        $client_required_fields = array(
+            'name', 'color', 'faction', 'team',
+            'spawnpoint', 'isadmin', 'isspectator', 'isbot',
+        );
+
         $game_copy_fields = array(
             'Name' => 'name',
             'Mod' => 'mod',
@@ -396,8 +401,9 @@
                 return false;
 
         foreach ($gameinfo['clients'] as $client)
-            if (sizeof($client) != 8)
-                return false;
+            foreach ($client_required_fields as $field)
+                if (!array_key_exists($field, $client))
+                    return false;
 
         $gameinfo['players'] = sizeof($gameinfo['clients']) - $gameinfo['spectators'] - $gameinfo['bots'];
         return $gameinfo;
