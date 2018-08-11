@@ -92,9 +92,9 @@
         $server_columns = array(
             'name' => PDO::PARAM_STR,
             'address' => PDO::PARAM_STR,
-            'modtitle' => PDO::PARAM_STR,
-            'modwebsite' => PDO::PARAM_STR,
-            'modicon32' => PDO::PARAM_STR,
+            'modtitle' => PDO::PARAM_STR, // Protocol version 2.1
+            'modwebsite' => PDO::PARAM_STR, // Protocol version 2.1
+            'modicon32' => PDO::PARAM_STR, // Protocol version 2.1
             'ts' => PDO::PARAM_INT,
             'state' => PDO::PARAM_INT,
             'map' => PDO::PARAM_STR,
@@ -279,9 +279,9 @@
             'Name' => 'name',
             'Mod' => 'mod',
             'Version' => 'version',
-            'ModTitle' => 'modtitle',
-            'ModWebsite' => 'modwebsite',
-            'ModIcon32' => 'modicon32',
+            'ModTitle' => 'modtitle', // Protocol version 2.1
+            'ModWebsite' => 'modwebsite', // Protocol version 2.1
+            'ModIcon32' => 'modicon32', // Protocol version 2.1
             'Map' => 'map',
             'State' => 'state',
             'MaxPlayers' => 'maxplayers',

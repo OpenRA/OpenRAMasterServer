@@ -87,9 +87,9 @@ function query_games($protocol)
                     'ttl' => $ttl,
                     'mod' => $row['mod'],
                     'version' => $row['version'],
-                    'modtitle' => $row['modtitle'],
-                    'modwebsite' => $row['modwebsite'],
-                    'modicon32' => $row['modicon32'],
+                    'modtitle' => $row['modtitle'], // Protocol version 2.1
+                    'modwebsite' => $row['modwebsite'], // Protocol version 2.1
+                    'modicon32' => $row['modicon32'], // Protocol version 2.1
                     'map' => $row['map'],
                     'players' => intval($row['players']),
                     'maxplayers' => intval($row['maxplayers']),
