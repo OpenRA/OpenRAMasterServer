@@ -79,6 +79,7 @@ function query_games($protocol)
                 // Version 2 used correct types, separates mod and version fields,
                 // adds a playtime field, and client data
                 // Version 2.1 added optional fields for mod title, mod website, and 32px mod icon
+                // Version 2.2 added optional fields for player fingerprint and servers that reject anonymous players
                 $server = array(
                     'id' => intval($row['id']),
                     'name' => $row['name'],
@@ -96,6 +97,7 @@ function query_games($protocol)
                     'bots' => intval($row['bots']),
                     'spectators' => intval($row['spectators']),
                     'protected' => $row['protected'] != 0,
+                    'authentication' => $row['authentication'] != 0 // Protocol version 2.2
                 );
 
                 if (isset($country))
@@ -116,6 +118,7 @@ function query_games($protocol)
                 {
                     $server['clients'][] = array(
                         'name' => $client['name'],
+                        'fingerprint' => $client['fingerprint'], // Protocol version 2.2
                         'color' => $client['color'],
                         'faction' => $client['faction'],
                         'team' => intval($client['team']),
@@ -185,6 +188,7 @@ else
         'bots' => 'Bots',
         'spectators' => 'Spectators',
         'protected' => 'Protected',
+        'authentication' => 'Authentication',
         'location' => 'Location',
         'started' => 'Started',
         'playtime' => 'PlayTime',
@@ -192,6 +196,7 @@ else
 
     $client_name_map = array(
         'name' => 'Name',
+        'fingerprint' => 'Fingerprint',
         'color' => 'Color',
         'faction' => 'Faction',
         'team' => 'Team',

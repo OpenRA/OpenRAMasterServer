@@ -101,6 +101,7 @@
             'mod' => PDO::PARAM_STR,
             'version' => PDO::PARAM_STR,
             'protected' => PDO::PARAM_BOOL,
+            'authentication' => PDO::PARAM_BOOL, // Protocol version 2.2
             'players' => PDO::PARAM_INT,
             'bots' => PDO::PARAM_INT,
             'spectators' => PDO::PARAM_INT,
@@ -119,6 +120,7 @@
             'mod' => PDO::PARAM_STR,
             'version' => PDO::PARAM_STR,
             'protected' => PDO::PARAM_BOOL,
+            'authentication' => PDO::PARAM_BOOL, // Protocol version 2.2
             'players' => PDO::PARAM_INT,
             'bots' => PDO::PARAM_INT,
             'spectators' => PDO::PARAM_INT,
@@ -129,6 +131,7 @@
         $client_columns = array(
             'address' => PDO::PARAM_STR,
             'name' => PDO::PARAM_STR,
+            'fingerprint' => PDO::PARAM_STR, // Protocol version 2.2
             'color' => PDO::PARAM_STR,
             'faction' => PDO::PARAM_STR,
             'team' => PDO::PARAM_INT,
@@ -261,6 +264,7 @@
     {
         $client_copy_fields = array(
             'Name' => 'name',
+            'Fingerprint' => 'fingerprint', // Protocol version 2.2
             'Color' => 'color',
             'Faction' => 'faction',
             'Team' => 'team',
@@ -286,6 +290,7 @@
             'State' => 'state',
             'MaxPlayers' => 'maxplayers',
             'Protected' => 'protected',
+            'Authentication' => 'authentication', // Protocol version 2.2
         );
 
         $game_required_fields = array(
