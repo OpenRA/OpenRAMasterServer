@@ -35,6 +35,7 @@
                     modwebsite VARCHAR,
                     modicon32 VARCHAR,
                     protected BOOLEAN DEFAULT 0,
+                    authentication BOOLEAN DEFAULT 0,
                     players INTEGER,
                     bots VARCHAR default 0,
                     spectators INTEGER DEFAULT 0,
@@ -48,6 +49,7 @@
         $schema = 'CREATE TABLE clients (
                     address VARCHAR,
                     name VARCHAR,
+                    fingerprint VARCHAR,
                     color VARCHAR,
                     faction VARCHAR,
                     team INTEGER DEFAULT 0,
@@ -71,6 +73,7 @@
                     mod VARCHAR,
                     version VARCHAR,
                     protected BOOLEAN DEFAULT 0,
+                    authentication BOOLEAN DEFAULT 0,
                     players INTEGER,
                     bots VARCHAR default 0,
                     spectators INTEGER DEFAULT 0,

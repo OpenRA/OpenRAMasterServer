@@ -92,15 +92,16 @@
         $server_columns = array(
             'name' => PDO::PARAM_STR,
             'address' => PDO::PARAM_STR,
-            'modtitle' => PDO::PARAM_STR,
-            'modwebsite' => PDO::PARAM_STR,
-            'modicon32' => PDO::PARAM_STR,
+            'modtitle' => PDO::PARAM_STR, // Protocol version 2.1
+            'modwebsite' => PDO::PARAM_STR, // Protocol version 2.1
+            'modicon32' => PDO::PARAM_STR, // Protocol version 2.1
             'ts' => PDO::PARAM_INT,
             'state' => PDO::PARAM_INT,
             'map' => PDO::PARAM_STR,
             'mod' => PDO::PARAM_STR,
             'version' => PDO::PARAM_STR,
             'protected' => PDO::PARAM_BOOL,
+            'authentication' => PDO::PARAM_BOOL, // Protocol version 2.2
             'players' => PDO::PARAM_INT,
             'bots' => PDO::PARAM_INT,
             'spectators' => PDO::PARAM_INT,
@@ -119,6 +120,7 @@
             'mod' => PDO::PARAM_STR,
             'version' => PDO::PARAM_STR,
             'protected' => PDO::PARAM_BOOL,
+            'authentication' => PDO::PARAM_BOOL, // Protocol version 2.2
             'players' => PDO::PARAM_INT,
             'bots' => PDO::PARAM_INT,
             'spectators' => PDO::PARAM_INT,
@@ -129,6 +131,7 @@
         $client_columns = array(
             'address' => PDO::PARAM_STR,
             'name' => PDO::PARAM_STR,
+            'fingerprint' => PDO::PARAM_STR, // Protocol version 2.2
             'color' => PDO::PARAM_STR,
             'faction' => PDO::PARAM_STR,
             'team' => PDO::PARAM_INT,
@@ -261,6 +264,7 @@
     {
         $client_copy_fields = array(
             'Name' => 'name',
+            'Fingerprint' => 'fingerprint', // Protocol version 2.2
             'Color' => 'color',
             'Faction' => 'faction',
             'Team' => 'team',
@@ -270,17 +274,23 @@
             'IsBot' => 'isbot',
         );
 
+        $client_required_fields = array(
+            'name', 'color', 'faction', 'team',
+            'spawnpoint', 'isadmin', 'isspectator', 'isbot',
+        );
+
         $game_copy_fields = array(
             'Name' => 'name',
             'Mod' => 'mod',
             'Version' => 'version',
-            'ModTitle' => 'modtitle',
-            'ModWebsite' => 'modwebsite',
-            'ModIcon32' => 'modicon32',
+            'ModTitle' => 'modtitle', // Protocol version 2.1
+            'ModWebsite' => 'modwebsite', // Protocol version 2.1
+            'ModIcon32' => 'modicon32', // Protocol version 2.1
             'Map' => 'map',
             'State' => 'state',
             'MaxPlayers' => 'maxplayers',
             'Protected' => 'protected',
+            'Authentication' => 'authentication', // Protocol version 2.2
         );
 
         $game_required_fields = array(
@@ -396,8 +406,9 @@
                 return false;
 
         foreach ($gameinfo['clients'] as $client)
-            if (sizeof($client) != 8)
-                return false;
+            foreach ($client_required_fields as $field)
+                if (!array_key_exists($field, $client))
+                    return false;
 
         $gameinfo['players'] = sizeof($gameinfo['clients']) - $gameinfo['spectators'] - $gameinfo['bots'];
         return $gameinfo;
