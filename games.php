@@ -162,7 +162,7 @@ if ($protocol < 1)
 
 if ($output_json)
 {
-    header('Content-Type: application/javascript');
+    header('Content-Type: application/json');
     header('Access-Control-Allow-Origin: *');
     print(json_encode(query_games($protocol)));
 }
