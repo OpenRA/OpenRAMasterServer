@@ -13,8 +13,8 @@ if (isset($_REQUEST['id']))
     {
         $db = new PDO(SYSINFO_DATABASE);
 
-        $insert = $db->prepare("INSERT OR REPLACE INTO sysinfo ('system_id','updated','platform','os','x64','x64process','runtime','gl','windowsize','windowscale','lang','version','mod','modversion','sysinfoversion')
-            VALUES (:system_id, :updated, :platform, :os, :x64, :x64process, :runtime, :gl, :windowsize, :windowscale, :lang, :version, :mod, :modversion, :sysinfoversion)"
+        $insert = $db->prepare("INSERT OR REPLACE INTO sysinfo ('system_id','updated','platform','os','x64','x64process','runtime','gl','windowsize','windowscale','uiscale','lang','version','mod','modversion','sysinfoversion')
+            VALUES (:system_id, :updated, :platform, :os, :x64, :x64process, :runtime, :gl, :windowsize, :windowscale, :uiscale, :lang, :version, :mod, :modversion, :sysinfoversion)"
         );
 
         // Anonymous user GUID. Added in protocol v1.
@@ -46,6 +46,9 @@ if (isset($_REQUEST['id']))
 
         // OpenRA window scale (> 1 for HiDPI). Added in protocol v2.
         $insert->bindValue(':windowscale', arg('windowscale', '1.00'), PDO::PARAM_STR);
+
+        // OpenRA ui scaling factor set through the settings menu (e.g. 1.5 for 150% scaling). Added in protocol v4.
+        $insert->bindValue(':uiscale', arg('uiscale', '1.00'), PDO::PARAM_STR);
 
         // Default system language (e.g. en). Added in protocol v1.
         $insert->bindValue(':lang', arg('lang'), PDO::PARAM_STR);

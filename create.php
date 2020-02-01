@@ -109,6 +109,7 @@
                     gl STRING,
                     windowsize STRING DEFAULT "0x0",
                     windowscale STRING DEFAULT "1.00",
+                    uiscale STRING DEFAULT "1.00",
                     lang STRING,
                     version STRING,
                     mod STRING,
