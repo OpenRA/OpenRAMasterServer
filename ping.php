@@ -152,6 +152,8 @@
             $gameinfo['last_state'] = $row['state'];
             $gameinfo['started'] = $row['started'];
         }
+        else
+            $gameinfo['started'] = '';
 
         // Update latest server metadata
         $update_server = $db->prepare("UPDATE servers " . update_columns_sql($server_columns) . " WHERE address = :address");
@@ -392,7 +394,8 @@
             switch ($statement['key'])
             {
                 case 'Address':
-                    $gameinfo['port'] = array_pop(explode(':', $statement['value']));
+                    $address_port = explode(':', $statement['value']);
+                    $gameinfo['port'] = array_pop($address_port);
                     break;
                 case 'Clients':
                     $parse_clients = true;
