@@ -40,6 +40,7 @@
                     bots VARCHAR default 0,
                     spectators INTEGER DEFAULT 0,
                     maxplayers INTEGER DEFAULT 0,
+                    disabled_spawn_points VARCHAR,
                     started DATETIME
         )';
         if ($db->query($schema))
@@ -78,6 +79,7 @@
                     bots VARCHAR default 0,
                     spectators INTEGER DEFAULT 0,
                     maxplayers INTEGER DEFAULT 0,
+                    disabled_spawn_points VARCHAR,
                     started DATETIME,
                     finished DATETIME
         )';
