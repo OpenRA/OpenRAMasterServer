@@ -108,6 +108,11 @@ function query_games($protocol)
                     $server['started'] = $row['started'];
                     $server['playtime'] = time() - strtotime($row['started']);
                 }
+                
+                // Protocol version 2.3
+                // Only displayed if one or more spawns are actually disabled
+                if (!empty($row['disabled_spawn_points']))
+                    $server['disabled_spawn_points'] = $row['disabled_spawn_points'];
 
                 $server['clients'] = array();
 
@@ -187,6 +192,7 @@ else
         'maxplayers' => 'MaxPlayers',
         'bots' => 'Bots',
         'spectators' => 'Spectators',
+        'disabled_spawn_points' => 'DisabledSpawnPoints',
         'protected' => 'Protected',
         'authentication' => 'Authentication',
         'location' => 'Location',

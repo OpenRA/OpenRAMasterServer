@@ -106,6 +106,7 @@
             'bots' => PDO::PARAM_INT,
             'spectators' => PDO::PARAM_INT,
             'maxplayers' => PDO::PARAM_INT,
+            'disabled_spawn_points' => PDO::PARAM_STR, // Protocol version 2.3
             'started' => PDO::PARAM_STR,
         );
 
@@ -125,6 +126,7 @@
             'bots' => PDO::PARAM_INT,
             'spectators' => PDO::PARAM_INT,
             'maxplayers' => PDO::PARAM_INT,
+            'disabled_spawn_points' => PDO::PARAM_STR, // Protocol version 2.3
             'started' => PDO::PARAM_STR,
         );
 
@@ -339,6 +341,7 @@
             'clients' => array(),
             'spectators' => 0,
             'bots' => 0,
+            'disabled_spawn_points' => '',
         );
 
         $client = -1;
@@ -400,6 +403,11 @@
                 case 'Clients':
                     $parse_clients = true;
                     break;
+                case 'DisabledSpawnPoints': // Protocol version 2.3
+                    // Validate as a list of integers
+                    if (!empty($statement['value']))
+                        $gameinfo['disabled_spawn_points'] = implode(',', array_map('intval', explode(',', $statement['value'])));
+                    break;
             }
         }
 
@@ -442,6 +450,7 @@
             'clients'   => array(),
             'mod'       => $mod,
             'version'   => $mod_version,
+            'disabled_spawn_points' => '',
         );
     }
 
