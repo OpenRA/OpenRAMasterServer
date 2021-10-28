@@ -45,6 +45,9 @@ function query_games($protocol)
                 array_pop($country);
                 $country = implode(":", $country);
                 $country = geoip_country_name_by_name($country);
+
+                if (!$country)
+                    $country = "Unknown";
             }
 
             $ttl = $row['ts'] + STALE_GAME_TIMEOUT - time();
