@@ -364,6 +364,9 @@
                     if (array_key_exists($statement['key'], $client_copy_fields))
                         $gameinfo['clients'][$client][$client_copy_fields[$statement['key']]] = $statement['value'];
 
+                    if ($statement['key'] == 'Color' && (strlen($statement['value']) != 6 || !ctype_xdigit($statement['value'])))
+                        return false;
+
                     // Some client fields require extra logic
                     switch ($statement['key'])
                     {
@@ -422,6 +425,53 @@
                     return false;
 
         $gameinfo['players'] = sizeof($gameinfo['clients']) - $gameinfo['spectators'] - $gameinfo['bots'];
+
+        // Sanitize player counts but don't reject the advertisement (avoiding potential exploits to delist legitimate servers)
+        $gameinfo['maxplayers'] = min($gameinfo['maxplayers'], MAX_PLAYERS_COUNT);
+        $maxbots = MAX_PLAYERS_COUNT - $gameinfo['maxplayers'];
+
+        if ($gameinfo['players'] > $gameinfo['maxplayers'] || $gameinfo['bots'] > $maxbots || $gameinfo['spectators'] > MAX_SPECTATORS_COUNT)
+        {
+            $newclients = array();
+            $newplayers = 0;
+            $newspectators = 0;
+            $newbots = 0;
+            foreach ($gameinfo['clients'] as $client)
+            {
+                $isbot = filter_var($client['isbot'], FILTER_VALIDATE_BOOLEAN);
+                $isspectator = filter_var($client['isspectator'], FILTER_VALIDATE_BOOLEAN);
+                if ($isspectator)
+                {
+                    if ($newspectators >= MAX_SPECTATORS_COUNT)
+                        continue;
+
+                    $newclients[] = $client;
+                    $newspectators++;
+                }
+                else if ($isbot)
+                {
+                    if ($newbots >= $maxbots)
+                        continue;
+
+                    $newclients[] = $client;
+                    $newbots++;
+                }
+                else
+                {
+                    if ($newplayers >= $gameinfo['maxplayers'])
+                        continue;
+
+                    $newclients[] = $client;
+                    $newplayers++;
+                }
+            }
+
+            $gameinfo['clients'] = $newclients;
+            $gameinfo['players'] = $newplayers;
+            $gameinfo['bots'] = $newbots;
+            $gameinfo['spectators'] = $newspectators;
+        }
+
         return $gameinfo;
     }
 
@@ -439,13 +489,13 @@
         return array(
             'name'      => urldecode($_REQUEST['name']),
             'port'      => $_REQUEST['port'],
-            'players'   => $_REQUEST['players'],
+            'players'   => min($_REQUEST['players'], MAX_LEGACY_PLAYERS_COUNT),
             'state'     => $_REQUEST['state'],
             'ts'        => time(),
             'map'       => $_REQUEST['map'],
-            'bots'      => isset($_REQUEST['bots']) ? $_REQUEST['bots'] : 0,
-            'spectators'=> isset($_REQUEST['spectators']) ? $_REQUEST['spectators'] : 0,
-            'maxplayers'=> isset($_REQUEST['maxplayers']) ? $_REQUEST['maxplayers'] : 0,
+            'bots'      => isset($_REQUEST['bots']) ? min($_REQUEST['bots'], MAX_LEGACY_BOTS_COUNT) : 0,
+            'spectators'=> isset($_REQUEST['spectators']) ? min($_REQUEST['spectators'], MAX_SPECTATORS_COUNT) : 0,
+            'maxplayers'=> isset($_REQUEST['maxplayers']) ? min($_REQUEST['maxplayers'], MAX_LEGACY_PLAYERS_COUNT) : 0,
             'protected' => isset($_REQUEST['protected']) ? $_REQUEST['protected'] : 0,
             'clients'   => array(),
             'mod'       => $mod,
@@ -460,7 +510,7 @@
     {
         $postdata = file_get_contents('php://input');
         $gameinfo = $postdata ? parse_ping($postdata) : parse_legacy_ping();
-        if (!$gameinfo)
+        if (!$gameinfo || strlen($gameinfo['map']) != 40 || strlen($gameinfo['version']) == 0 || strlen($gameinfo['mod']) == 0)
             die('[003] Advertisement data is not in the expected format');
 
         $port = intval($gameinfo['port']);
