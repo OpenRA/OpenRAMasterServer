@@ -7,5 +7,5 @@ Redirectmatch ^/$ http://www.openra.net/games/
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^([^.]+)?$ $1.php [L]
+RewriteRule ^([^.]+)+$ $1.php [L]
 RewriteRule ^appimagecheck\.zsync$ appimagecheck.php [L]
