@@ -427,10 +427,10 @@
         $gameinfo['players'] = sizeof($gameinfo['clients']) - $gameinfo['spectators'] - $gameinfo['bots'];
 
         // Sanitize player counts but don't reject the advertisement (avoiding potential exploits to delist legitimate servers)
-        $gameinfo['maxplayers'] = min($gameinfo['maxplayers'], MAX_PLAYERS_COUNT);
+        $gameinfo['maxplayers'] = max(0, min(intval($gameinfo['maxplayers']), MAX_PLAYERS_COUNT));
         $maxbots = MAX_PLAYERS_COUNT - $gameinfo['maxplayers'];
 
-        if ($gameinfo['players'] > $gameinfo['maxplayers'] || $gameinfo['bots'] > $maxbots || $gameinfo['spectators'] > MAX_SPECTATORS_COUNT)
+        if ($gameinfo['players'] < 0 || $gameinfo['players'] > $gameinfo['maxplayers'] || $gameinfo['bots'] > $maxbots || $gameinfo['spectators'] > MAX_SPECTATORS_COUNT)
         {
             $newclients = array();
             $newplayers = 0;
@@ -489,13 +489,13 @@
         return array(
             'name'      => urldecode($_REQUEST['name']),
             'port'      => $_REQUEST['port'],
-            'players'   => min($_REQUEST['players'], MAX_LEGACY_PLAYERS_COUNT),
+            'players'   => max(0, min(intval($_REQUEST['players']), MAX_LEGACY_PLAYERS_COUNT)),
             'state'     => $_REQUEST['state'],
             'ts'        => time(),
             'map'       => $_REQUEST['map'],
-            'bots'      => isset($_REQUEST['bots']) ? min($_REQUEST['bots'], MAX_LEGACY_BOTS_COUNT) : 0,
-            'spectators'=> isset($_REQUEST['spectators']) ? min($_REQUEST['spectators'], MAX_SPECTATORS_COUNT) : 0,
-            'maxplayers'=> isset($_REQUEST['maxplayers']) ? min($_REQUEST['maxplayers'], MAX_LEGACY_PLAYERS_COUNT) : 0,
+            'bots'      => isset($_REQUEST['bots']) ? max(0, min(intval($_REQUEST['bots']), MAX_LEGACY_BOTS_COUNT)) : 0,
+            'spectators'=> isset($_REQUEST['spectators']) ? max(0, min(intval($_REQUEST['spectators']), MAX_SPECTATORS_COUNT)) : 0,
+            'maxplayers'=> isset($_REQUEST['maxplayers']) ? max(0, min(intval($_REQUEST['maxplayers']), MAX_LEGACY_PLAYERS_COUNT)) : 0,
             'protected' => isset($_REQUEST['protected']) ? $_REQUEST['protected'] : 0,
             'clients'   => array(),
             'mod'       => $mod,
