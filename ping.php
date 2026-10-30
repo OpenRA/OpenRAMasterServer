@@ -78,7 +78,7 @@
             {
                 case PDO::PARAM_INT: $value = intval($value); break;
                 case PDO::PARAM_BOOL: $value = intval(filter_var($value, FILTER_VALIDATE_BOOLEAN)); break;
-                case PDO::PARAM_STR: $value = htmlspecialchars($value); break;
+                case PDO::PARAM_STR: $value = strval($value); break;
             }
 
             $query->bindValue(':'.$column, $value, $type);

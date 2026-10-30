@@ -172,7 +172,7 @@ if ($output_json)
 {
     header('Content-Type: application/json');
     header('Access-Control-Allow-Origin: *');
-    print(json_encode(query_games($protocol)));
+    print(json_encode(query_games($protocol), JSON_INVALID_UTF8_SUBSTITUTE));
 }
 else
 {
