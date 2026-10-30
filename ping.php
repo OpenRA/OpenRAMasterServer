@@ -533,7 +533,7 @@
     }
     catch (Exception $e)
     {
-        die('[004] Failed to update server database');
         error_log($e->getMessage());
+        die('[004] Failed to update server database');
     }
 ?>
